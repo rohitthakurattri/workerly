@@ -1,0 +1,42 @@
+{
+  "name": "workerly-frontend",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev:customer": "APP_TARGET=customer nuxt dev --port 3001",
+    "dev:worker": "APP_TARGET=worker nuxt dev --port 3002",
+    "dev:admin": "APP_TARGET=admin nuxt dev --port 3003",
+    "build:customer": "APP_TARGET=customer nuxt build",
+    "build:worker": "APP_TARGET=worker nuxt build",
+    "build:admin": "APP_TARGET=admin nuxt build",
+    "build:all": "npm run build:customer && npm run build:worker && npm run build:admin",
+    "postinstall": "nuxt prepare",
+    "lint": "eslint .",
+    "typecheck": "nuxt typecheck",
+    "test": "vitest run",
+    "gen:api": "openapi-typescript ../backend/swagger/v1/openapi.yaml -o app/types/api.d.ts"
+  },
+  "dependencies": {
+    "@nuxtjs/i18n": "10.6.0",
+    "@pinia/nuxt": "1.0.3",
+    "@tailwindcss/vite": "4.3.3",
+    "esbuild": "0.28.2",
+    "nuxt": "4.6.3",
+    "pinia": "4.1.0",
+    "tailwindcss": "4.3.3",
+    "vue": "3.5.44",
+    "vue-router": "5.4.0"
+  },
+  "devDependencies": {
+    "@nuxt/eslint": "1.17.0",
+    "@playwright/test": "1.64.1",
+    "@vitejs/plugin-vue": "6.0.10",
+    "@vue/test-utils": "2.5.1",
+    "eslint": "10.13.0",
+    "happy-dom": "21.0.4",
+    "openapi-typescript": "7.13.0",
+    "typescript": "5.9.3",
+    "vitest": "5.0.5",
+    "vue-tsc": "3.3.14"
+  }
+}

@@ -1,0 +1,19 @@
+services:
+  db:
+    image: postgis/postgis:16-3.4
+    environment:
+      POSTGRES_USER: workerly
+      POSTGRES_PASSWORD: workerly
+    ports: ["5433:5432"]
+    volumes: [pgdata:/var/lib/postgresql/data]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U workerly"]
+      interval: 5s
+      retries: 10
+  redis:
+    image: redis:7.4-alpine
+    ports: ["6380:6379"]
+    volumes: [redisdata:/data]
+volumes:
+  pgdata:
+  redisdata:

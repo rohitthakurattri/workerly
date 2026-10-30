@@ -1,0 +1,39 @@
+{
+  "auth": {
+    "title": "Log in",
+    "subtitle": { "customer": "Get trusted local workers, with quotes you can compare", "worker": "Find jobs near you", "admin": "Staff sign-in" },
+    "phoneLabel": "Mobile number",
+    "phoneHint": "We'll send a 6-digit code by SMS",
+    "invalidPhone": "Enter a valid 10-digit Indian mobile number.",
+    "sendCode": "Send code",
+    "codeSentTo": "Code sent to {phone}.",
+    "change": "Change",
+    "codeLabel": "6-digit code",
+    "verify": "Continue",
+    "resend": "Resend code",
+    "resendIn": "Resend in {s}s",
+    "wrongCode": "That code is incorrect. {n} attempts left.",
+    "totpLabel": "Authenticator code",
+    "totpHelp": "Enter the 6-digit code from your authenticator app.",
+    "staffOnly": "Only Workerly staff can sign in here.",
+    "logout": "Log out",
+    "getStarted": "Get started"
+  },
+  "roles": { "customer": "Customer", "worker": "Worker", "admin": "Admin", "finance": "Finance", "support": "Support", "verifier": "Verifier", "switch": "Switch role", "switched": "You are now acting as {role}." },
+  "home": { "greeting": "Hello, {name}", "there": "there" },
+  "customer": {
+    "heroTitle": "Home repairs, done right",
+    "heroBody": "Describe the problem, get quotes from verified workers near you in Mohali and Chandigarh, and pay only what you approve.",
+    "noRequests": "No requests yet",
+    "noRequestsHint": "Soon you'll be able to describe a problem and get quotes here."
+  },
+  "worker": {
+    "noLeads": "No leads yet",
+    "noLeadsHint": "Jobs near you will appear here once your profile is verified.",
+    "becomeTitle": "Become a Workerly Pro",
+    "becomeBody": "Add your skills, service area and ID documents to start receiving jobs."
+  },
+  "admin": { "dashboard": "Dashboard", "emptyTitle": "Nothing to review yet", "emptyBody": "Worker verifications and disputes will show up here." },
+  "profile": { "title": "Your profile", "name": "Full name", "phone": "Mobile", "saved": "Profile saved" },
+  "common": { "save": "Save", "cancel": "Cancel", "comingSoon": "Coming soon" }
+}

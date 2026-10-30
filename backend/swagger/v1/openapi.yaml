@@ -1,0 +1,314 @@
+---
+openapi: 3.0.3
+info:
+  title: Workerly API
+  version: v1
+servers:
+- url: http://localhost:3000
+- url: https://api.workerly.in
+components:
+  securitySchemes:
+    bearer:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    error:
+      type: object
+      required:
+      - error
+      properties:
+        error:
+          type: object
+          required:
+          - code
+          - message
+          - request_id
+          properties:
+            code:
+              type: string
+            message:
+              type: string
+            details:
+              type: object
+            request_id:
+              type: string
+    user:
+      type: object
+      required:
+      - id
+      - phone
+      - roles
+      - locale
+      properties:
+        id:
+          type: string
+          format: uuid
+        phone:
+          type: string
+        name:
+          type: string
+          nullable: true
+        email:
+          type: string
+          nullable: true
+        locale:
+          type: string
+          enum:
+          - en
+          - hi
+          - pa
+        roles:
+          type: array
+          items:
+            type: string
+        created_at:
+          type: string
+          format: date-time
+    auth_session:
+      type: object
+      required:
+      - data
+      properties:
+        data:
+          type: object
+          required:
+          - access_token
+          - token_type
+          - expires_in
+          - active_role
+          - session
+          - user
+          properties:
+            access_token:
+              type: string
+            token_type:
+              type: string
+            expires_in:
+              type: integer
+            refresh_token:
+              type: string
+            active_role:
+              type: string
+            session:
+              type: object
+              properties:
+                scope:
+                  type: string
+                expires_at:
+                  type: string
+            user:
+              "$ref": "#/components/schemas/user"
+paths:
+  "/api/v1/auth/otp":
+    post:
+      summary: Send a login code by SMS
+      tags:
+      - Auth
+      parameters: []
+      responses:
+        '202':
+          description: code sent
+        '422':
+          description: invalid phone
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - phone
+              properties:
+                phone:
+                  type: string
+                  example: '9876543210'
+  "/api/v1/auth/otp/verify":
+    post:
+      summary: Verify a login code
+      tags:
+      - Auth
+      description: scope=consumer (default) returns a session and sets the HttpOnly
+        `wk_rt` cookie. scope=staff returns an MFA token for /auth/totp.
+      parameters: []
+      responses:
+        '201':
+          description: logged in
+        '200':
+          description: 'staff: TOTP required'
+        '422':
+          description: wrong code
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - phone
+              - code
+              properties:
+                phone:
+                  type: string
+                code:
+                  type: string
+                scope:
+                  type: string
+                  enum:
+                  - consumer
+                  - staff
+                role:
+                  type: string
+                  enum:
+                  - customer
+                  - worker
+                token_delivery:
+                  type: string
+                  enum:
+                  - cookie
+                  - body
+  "/api/v1/auth/totp":
+    post:
+      summary: Staff second factor
+      tags:
+      - Auth
+      parameters: []
+      responses:
+        '201':
+          description: staff session started
+        '401':
+          description: wrong code
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - mfa_token
+              - code
+              properties:
+                mfa_token:
+                  type: string
+                code:
+                  type: string
+                role:
+                  type: string
+  "/api/v1/auth/refresh":
+    post:
+      summary: Rotate the refresh token and get a new access token
+      tags:
+      - Auth
+      description: Reads the refresh cookie for the given scope (or `refresh_token`
+        with token_delivery=body). Reusing a rotated token revokes the session.
+      parameters:
+      - name: Origin
+        in: header
+        schema:
+          type: string
+      responses:
+        '200':
+          description: rotated
+        '401':
+          description: invalid token
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                scope:
+                  type: string
+                role:
+                  type: string
+                token_delivery:
+                  type: string
+                refresh_token:
+                  type: string
+  "/api/v1/auth/switch_role":
+    post:
+      summary: Act as another role in the same session
+      tags:
+      - Auth
+      security:
+      - bearer: []
+      parameters:
+      - name: Authorization
+        in: header
+        schema:
+          type: string
+      responses:
+        '200':
+          description: switched
+        '403':
+          description: role not held
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - role
+              properties:
+                role:
+                  type: string
+  "/api/v1/auth/session":
+    delete:
+      summary: Log out (revokes the session and all its refresh tokens)
+      tags:
+      - Auth
+      security:
+      - bearer: []
+      parameters:
+      - name: Authorization
+        in: header
+        schema:
+          type: string
+      responses:
+        '204':
+          description: logged out
+  "/api/v1/me":
+    get:
+      summary: Current user
+      tags:
+      - Me
+      security:
+      - bearer: []
+      parameters:
+      - name: Authorization
+        in: header
+        schema:
+          type: string
+      responses:
+        '200':
+          description: ok
+        '401':
+          description: not logged in
+    patch:
+      summary: Update name, email or language
+      tags:
+      - Me
+      security:
+      - bearer: []
+      parameters:
+      - name: Authorization
+        in: header
+        schema:
+          type: string
+      responses:
+        '200':
+          description: updated
+        '422':
+          description: invalid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                user:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                    email:
+                      type: string
+                    locale:
+                      type: string

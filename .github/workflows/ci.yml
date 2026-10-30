@@ -1,0 +1,100 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    defaults: { run: { working-directory: backend } }
+    services:
+      db:
+        image: postgis/postgis:16-3.4
+        env: { POSTGRES_USER: workerly, POSTGRES_PASSWORD: workerly }
+        ports: ["5433:5432"]
+        options: --health-cmd "pg_isready -U workerly" --health-interval 5s --health-retries 10
+    env:
+      RAILS_ENV: test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ruby/setup-ruby@v1
+        with: { working-directory: backend, bundler-cache: true }
+      - run: bin/rails db:create db:schema:load
+      - run: bundle exec rubocop
+      - run: bundle exec brakeman -q --no-pager --exit-on-warn
+      - run: bundle exec bundler-audit check --update
+      - run: bundle exec rspec
+      - name: OpenAPI is up to date
+        run: |
+          bundle exec rake rswag:specs:swaggerize
+          git diff --exit-code swagger/
+
+  frontend:
+    runs-on: ubuntu-latest
+    defaults: { run: { working-directory: frontend } }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 24, cache: npm, cache-dependency-path: frontend/package-lock.json }
+      - run: npm ci
+      - run: npm run lint
+      - run: |
+          for t in customer worker admin; do APP_TARGET=$t npx nuxt typecheck; done
+      - run: npm test
+      - name: API types match the OpenAPI spec
+        run: npm run gen:api && git diff --exit-code app/types/api.d.ts
+      - run: npm run build:all
+
+  e2e:
+    needs: [backend, frontend]
+    runs-on: ubuntu-latest
+    services:
+      db:
+        image: postgis/postgis:16-3.4
+        env: { POSTGRES_USER: workerly, POSTGRES_PASSWORD: workerly }
+        ports: ["5433:5432"]
+        options: --health-cmd "pg_isready -U workerly" --health-interval 5s --health-retries 10
+      redis:
+        image: redis:7.4-alpine
+        ports: ["6380:6379"]
+    env:
+      RAILS_ENV: development # the fake SMS inbox and e2e seed are development-only
+      APP_ORIGINS: http://localhost:3001,http://localhost:3002,http://localhost:3003
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ruby/setup-ruby@v1
+        with: { working-directory: backend, bundler-cache: true }
+      - uses: actions/setup-node@v4
+        with: { node-version: 24, cache: npm, cache-dependency-path: frontend/package-lock.json }
+      - name: Start API and Sidekiq
+        working-directory: backend
+        run: |
+          bin/rails db:create db:schema:load
+          bin/rails server -p 3000 > log/server.log 2>&1 &
+          bundle exec sidekiq -C config/sidekiq.yml > log/sidekiq.log 2>&1 &
+      - name: Build and start the three apps
+        working-directory: frontend
+        run: |
+          npm ci
+          npx playwright install --with-deps chromium
+          npm run build:all
+          for t in customer worker admin; do
+            port=$([ $t = customer ] && echo 3001 || ([ $t = worker ] && echo 3002 || echo 3003))
+            PORT=$port node .output/$t/server/index.mjs > /tmp/$t.log 2>&1 &
+          done
+          npx wait-on -t 60000 http://localhost:3000/up http://localhost:3001/login http://localhost:3002/login http://localhost:3003/login
+      - run: npx playwright test
+        working-directory: frontend
+      - if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-debug
+          path: |
+            frontend/test-results
+            backend/log

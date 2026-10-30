@@ -1,0 +1,55 @@
+@import "tailwindcss";
+
+/* Design tokens. Components use these names, never raw palette colours,
+   so brand colours (still to be supplied) change in one place. */
+@theme {
+  --font-sans: "Inter", "Noto Sans Devanagari", "Noto Sans Gurmukhi", ui-sans-serif, system-ui, sans-serif;
+
+  --color-brand-50: #f0fdfa;
+  --color-brand-100: #ccfbf1;
+  --color-brand-500: #14b8a6;
+  --color-brand-600: #0d9488;
+  --color-brand-700: #0f766e;
+  --color-brand-800: #115e59;
+
+  --color-surface: #ffffff;
+  --color-surface-muted: #f8fafc;
+  --color-border: #e2e8f0;
+  --color-ink: #0f172a;
+  --color-ink-muted: #475569;
+  --color-ink-subtle: #94a3b8;
+
+  --color-success: #15803d;
+  --color-success-soft: #dcfce7;
+  --color-warning: #b45309;
+  --color-warning-soft: #fef3c7;
+  --color-danger: #b91c1c;
+  --color-danger-soft: #fee2e2;
+  --color-info: #1d4ed8;
+  --color-info-soft: #dbeafe;
+
+  --radius-control: 0.625rem;
+  --radius-card: 1rem;
+}
+
+/* Worker and admin apps re-tint the brand scale. */
+[data-target="worker"] {
+  --color-brand-50: #eff6ff;
+  --color-brand-100: #dbeafe;
+  --color-brand-500: #3b82f6;
+  --color-brand-600: #2563eb;
+  --color-brand-700: #1d4ed8;
+  --color-brand-800: #1e40af;
+}
+[data-target="admin"] {
+  --color-brand-50: #f8fafc;
+  --color-brand-100: #e2e8f0;
+  --color-brand-500: #475569;
+  --color-brand-600: #334155;
+  --color-brand-700: #1e293b;
+  --color-brand-800: #0f172a;
+}
+
+html { -webkit-tap-highlight-color: transparent; }
+body { @apply bg-surface-muted text-ink antialiased; }
+:focus-visible { @apply outline-2 outline-offset-2 outline-brand-600; }
