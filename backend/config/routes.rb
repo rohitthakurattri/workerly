@@ -19,6 +19,34 @@ Rails.application.routes.draw do
 
       resource :me, only: %i[show update], controller: :me
 
+      resources :categories, only: %i[index show], param: :slug
+      resources :cities, only: :index
+
+      namespace :worker do
+        resource :registration, only: :create
+        resource :profile, only: %i[show update] do
+          post :submit_for_review, action: :submit
+        end
+        resource :verification, only: :show
+        resource :skills, only: :update
+        resource :availability, only: :update
+        resources :service_areas, only: %i[index create update destroy]
+        resources :documents, only: %i[index create destroy]
+        resources :leads, only: %i[index show]
+      end
+
+      namespace :admin do
+        resources :workers, only: %i[index show] do
+          member do
+            post :verification, action: :verify
+            post :suspend
+            post :reinstate
+          end
+        end
+        resources :audit_logs, only: :index
+        resources :categories, only: %i[index create update]
+      end
+
       match "*path", to: "errors#not_found", via: :all
     end
   end

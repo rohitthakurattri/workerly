@@ -9,16 +9,15 @@ const { t } = useI18n()
 
 <template>
   <header class="sticky top-0 z-30 border-b border-border bg-surface/95 backdrop-blur">
-    <div class="mx-auto flex h-14 max-w-5xl items-center justify-between gap-3 px-4">
+    <div class="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-x-3 gap-y-2 px-4 py-2.5">
       <NuxtLink
         to="/"
-        class="text-lg font-bold text-brand-700"
+        class="whitespace-nowrap text-lg font-bold text-brand-700"
       >
         {{ title }}
       </NuxtLink>
       <div class="flex items-center gap-2">
         <SharedLanguageSwitcher />
-        <slot />
         <UiButton
           v-if="auth.isLoggedIn"
           variant="ghost"
@@ -27,6 +26,13 @@ const { t } = useI18n()
         >
           {{ t('auth.logout') }}
         </UiButton>
+      </div>
+      <!-- Role switch drops to its own row on phones so nothing overflows. -->
+      <div
+        v-if="$slots.default"
+        class="flex w-full justify-end sm:order-none sm:w-auto"
+      >
+        <slot />
       </div>
     </div>
   </header>

@@ -25,3 +25,11 @@ local:
 #   service: Mirror
 #   primary: local
 #   mirrors: [ amazon, google, microsoft ]
+
+# Private bucket: no public ACLs, SSE-KMS at rest. Files are served only via short-lived signed URLs.
+amazon:
+  service: S3
+  region: <%= ENV.fetch("AWS_REGION", "ap-south-1") %>
+  bucket: <%= ENV["S3_PRIVATE_BUCKET"] %>
+  upload:
+    server_side_encryption: "aws:kms"

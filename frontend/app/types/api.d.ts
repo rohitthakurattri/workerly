@@ -385,6 +385,630 @@ export interface paths {
         };
         trace?: never;
     };
+    "/api/v1/categories": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Active service categories (tree) */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description ok */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/cities": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Launched cities */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description ok */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/worker/registration": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Become a worker (customer -> worker) */
+        post: {
+            parameters: {
+                query?: never;
+                header?: {
+                    Authorization?: string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": {
+                        name?: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description registered; returns a worker-role access token */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/worker/profile": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Own worker profile */
+        get: {
+            parameters: {
+                query?: never;
+                header?: {
+                    Authorization?: string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description ok */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Update bio and experience (send multipart with profile[photo] to upload a photo) */
+        patch: {
+            parameters: {
+                query?: never;
+                header?: {
+                    Authorization?: string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": {
+                        profile?: {
+                            bio?: string;
+                            experience_years?: number;
+                        };
+                    };
+                };
+            };
+            responses: {
+                /** @description updated */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        trace?: never;
+    };
+    "/api/v1/worker/skills": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Replace skills */
+        put: {
+            parameters: {
+                query?: never;
+                header?: {
+                    Authorization?: string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": {
+                        skills: {
+                            category: string;
+                            experience_years?: number;
+                        }[];
+                    };
+                };
+            };
+            responses: {
+                /** @description replaced */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description unknown category */
+                422: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/worker/service_areas": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Add a service area (max 3) */
+        post: {
+            parameters: {
+                query?: never;
+                header?: {
+                    Authorization?: string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": {
+                        city: string;
+                        lat: number;
+                        lng: number;
+                        radius_m: number;
+                        label?: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description created */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/worker/documents": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Upload a verification document (JPEG/PNG/WebP/HEIC/PDF, max 10 MB) */
+        post: {
+            parameters: {
+                query?: never;
+                header?: {
+                    Authorization?: string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "multipart/form-data": "identity" | "address" | "trade";
+                };
+            };
+            responses: {
+                /** @description uploaded */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/worker/profile/submit_for_review": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Submit for verification */
+        post: {
+            parameters: {
+                query?: never;
+                header?: {
+                    Authorization?: string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description submitted */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description incomplete (details.missing lists what's left) */
+                422: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/worker/leads": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Leads (approved workers only) */
+        get: {
+            parameters: {
+                query?: never;
+                header?: {
+                    Authorization?: string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description ok */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description not verified */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/workers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Worker list / review queue */
+        get: {
+            parameters: {
+                query?: {
+                    "filter[status]"?: components["schemas"]["verification_status"];
+                    q?: string;
+                    cursor?: string;
+                    limit?: number;
+                };
+                header?: {
+                    Authorization?: string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description ok */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/workers/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Worker detail with documents */
+        get: {
+            parameters: {
+                query?: never;
+                header?: {
+                    Authorization?: string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description ok */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/workers/{id}/verification": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Decide on a submitted worker */
+        post: {
+            parameters: {
+                query?: never;
+                header?: {
+                    Authorization?: string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": {
+                        /** @enum {string} */
+                        decision: "approved" | "changes_requested" | "rejected";
+                        reason?: string;
+                        documents?: {
+                            id: string;
+                            /** @enum {string} */
+                            status: "approved" | "rejected";
+                            reason?: string;
+                        }[];
+                    };
+                };
+            };
+            responses: {
+                /** @description approved */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description documents still pending */
+                422: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/workers/{id}/suspend": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Suspend a worker (admin, support) */
+        post: {
+            parameters: {
+                query?: never;
+                header?: {
+                    Authorization?: string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": {
+                        reason: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description suspended */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description verifiers can't suspend */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/audit_logs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Audit log (admin) */
+        get: {
+            parameters: {
+                query?: never;
+                header?: {
+                    Authorization?: string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description ok */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -408,6 +1032,129 @@ export interface components {
             roles: string[];
             /** Format: date-time */
             created_at?: string;
+        };
+        file: {
+            url?: string;
+            content_type?: string;
+            byte_size?: number;
+            filename?: string;
+            expires_in?: number;
+        } | null;
+        category: {
+            slug: string;
+            name: string;
+            description?: string | null;
+            icon?: string | null;
+            inspection_allowed?: boolean;
+            children: components["schemas"]["category"][];
+        };
+        city: {
+            slug: string;
+            name: string;
+            state?: string;
+            currency_code?: string;
+            time_zone?: string;
+            service_radius_m?: number;
+            center: components["schemas"]["lat_lng"];
+        };
+        lat_lng: {
+            lat: number;
+            lng: number;
+        };
+        service_area: {
+            id: string;
+            city: string;
+            label?: string | null;
+            radius_m: number;
+            center: components["schemas"]["lat_lng"];
+        };
+        worker_document: {
+            id: string;
+            /** @enum {string} */
+            kind: "identity" | "address" | "trade";
+            doc_type: string;
+            number_last4?: string | null;
+            /** @enum {string} */
+            status: "pending" | "approved" | "rejected" | "superseded";
+            rejection_reason?: string | null;
+            reviewed_at?: string | null;
+            uploaded_at?: string;
+            file?: components["schemas"]["file"];
+        };
+        /** @enum {string} */
+        verification_status: "draft" | "pending_review" | "changes_requested" | "approved" | "rejected";
+        worker_profile: {
+            id: string;
+            bio?: string | null;
+            experience_years?: number | null;
+            verification_status: components["schemas"]["verification_status"];
+            available?: boolean;
+            editable: boolean;
+            suspended: boolean;
+            rating_avg?: number | null;
+            rating_count?: number;
+            submitted_at?: string | null;
+            approved_at?: string | null;
+            photo?: components["schemas"]["file"];
+            skills: {
+                category?: string;
+                name?: string;
+                experience_years?: number | null;
+            }[];
+            service_areas: components["schemas"]["service_area"][];
+            documents: components["schemas"]["worker_document"][];
+            missing: string[];
+            last_decision?: {
+                decision?: string;
+                reason?: string | null;
+                decided_at?: string;
+            } | null;
+        };
+        admin_worker_summary: {
+            id?: string;
+            name?: string | null;
+            phone?: string;
+            verification_status?: components["schemas"]["verification_status"];
+            experience_years?: number | null;
+            suspended?: boolean;
+            skills?: string[];
+            submitted_at?: string | null;
+            created_at?: string;
+        };
+        admin_worker_detail: {
+            id?: string;
+            bio?: string | null;
+            experience_years?: number | null;
+            verification_status?: components["schemas"]["verification_status"];
+            suspended?: boolean;
+            suspension_reason?: string | null;
+            submitted_at?: string | null;
+            approved_at?: string | null;
+            user?: {
+                id?: string;
+                name?: string | null;
+                phone?: string;
+                created_at?: string;
+            };
+            photo?: components["schemas"]["file"];
+            skills?: {
+                category?: string;
+                name?: string;
+                experience_years?: number | null;
+            }[];
+            service_areas?: components["schemas"]["service_area"][];
+            documents?: components["schemas"]["worker_document"][];
+            missing?: string[];
+            history?: {
+                decision?: string;
+                reason?: string | null;
+                documents?: Record<string, never>[];
+                by?: string;
+                at?: string;
+            }[];
+        };
+        page_meta: {
+            next_cursor?: string | null;
         };
         auth_session: {
             data: {

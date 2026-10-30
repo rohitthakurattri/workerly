@@ -1,7 +1,11 @@
 {
   "auth": {
     "title": "Log in",
-    "subtitle": { "customer": "Get trusted local workers, with quotes you can compare", "worker": "Find jobs near you", "admin": "Staff sign-in" },
+    "subtitle": {
+      "customer": "Get trusted local workers, with quotes you can compare",
+      "worker": "Find jobs near you",
+      "admin": "Staff sign-in"
+    },
     "phoneLabel": "Mobile number",
     "phoneHint": "We'll send a 6-digit code by SMS",
     "invalidPhone": "Enter a valid 10-digit Indian mobile number.",
@@ -19,8 +23,20 @@
     "logout": "Log out",
     "getStarted": "Get started"
   },
-  "roles": { "customer": "Customer", "worker": "Worker", "admin": "Admin", "finance": "Finance", "support": "Support", "verifier": "Verifier", "switch": "Switch role", "switched": "You are now acting as {role}." },
-  "home": { "greeting": "Hello, {name}", "there": "there" },
+  "roles": {
+    "customer": "Customer",
+    "worker": "Worker",
+    "admin": "Admin",
+    "finance": "Finance",
+    "support": "Support",
+    "verifier": "Verifier",
+    "switch": "Switch role",
+    "switched": "You are now acting as {role}."
+  },
+  "home": {
+    "greeting": "Hello, {name}",
+    "there": "there"
+  },
   "customer": {
     "heroTitle": "Home repairs, done right",
     "heroBody": "Describe the problem, get quotes from verified workers near you in Mohali and Chandigarh, and pay only what you approve.",
@@ -31,9 +47,216 @@
     "noLeads": "No leads yet",
     "noLeadsHint": "Jobs near you will appear here once your profile is verified.",
     "becomeTitle": "Become a Workerly Pro",
-    "becomeBody": "Add your skills, service area and ID documents to start receiving jobs."
+    "becomeBody": "Add your skills, service area and ID documents to start receiving jobs. It takes about 10 minutes.",
+    "startRegistration": "Start registration",
+    "availability": "Available for jobs",
+    "available": "You're available for jobs",
+    "unavailable": "You're not taking jobs",
+    "availabilityHint": "Turn this off when you're busy or on leave.",
+    "nowAvailable": "You will now get job requests.",
+    "nowUnavailable": "You won't get new job requests.",
+    "leads": "Job requests",
+    "noLeadsApproved": "New jobs near you will appear here."
   },
-  "admin": { "dashboard": "Dashboard", "emptyTitle": "Nothing to review yet", "emptyBody": "Worker verifications and disputes will show up here." },
-  "profile": { "title": "Your profile", "name": "Full name", "phone": "Mobile", "saved": "Profile saved" },
-  "common": { "save": "Save", "cancel": "Cancel", "comingSoon": "Coming soon" }
+  "admin": {
+    "dashboard": "Dashboard",
+    "emptyTitle": "Nothing to review yet",
+    "emptyBody": "Worker verifications and disputes will show up here.",
+    "nav": "Admin sections",
+    "workers": "Workers",
+    "auditLog": "Audit log",
+    "verificationQueue": "Verification queue",
+    "waitingForReview": "workers waiting for review",
+    "openQueue": "Open queue",
+    "status": {
+      "pending_review": "Waiting for review",
+      "changes_requested": "Changes requested",
+      "approved": "Approved",
+      "rejected": "Rejected",
+      "draft": "Draft",
+      "all": "All"
+    },
+    "suspended": "Suspended",
+    "search": "Search",
+    "searchPlaceholder": "Name or phone",
+    "searchButton": "Search",
+    "skills": "Skills",
+    "statusLabel": "Status",
+    "submitted": "Submitted",
+    "noWorkers": "No workers here",
+    "loadMore": "Load more",
+    "profile": "Profile",
+    "serviceAreas": "Service areas",
+    "yearsShort": "{n} yrs",
+    "suspensionReason": "Suspension reason",
+    "endsWith": "Number ends with {last4}",
+    "openPdf": "Open {name}",
+    "documentDecision": "Decision for this document",
+    "approveDoc": "Looks valid",
+    "rejectDoc": "Reject",
+    "rejectReason": "Why? (shown to the worker)",
+    "rejectReasonPlaceholder": "e.g. Photo is blurry, upload again",
+    "decision": "Decision",
+    "decisionHint": "Approve only if the ID matches the profile photo and name.",
+    "reviewAllFirst": "Mark every document first.",
+    "approveWorker": "Approve worker",
+    "requestChanges": "Ask for changes",
+    "rejectWorker": "Reject application",
+    "suspension": "Suspension",
+    "suspend": "Suspend worker",
+    "reinstate": "Reinstate worker",
+    "history": "History",
+    "decisions": {
+      "approved": "Approved",
+      "changes_requested": "Changes requested",
+      "rejected": "Rejected",
+      "suspended": "Suspended",
+      "reinstated": "Reinstated"
+    },
+    "confirm": {
+      "approved": "Approve this worker?",
+      "changes_requested": "Ask the worker for changes?",
+      "rejected": "Reject this application?",
+      "suspend": "Suspend this worker?",
+      "reinstate": "Reinstate this worker?"
+    },
+    "done": {
+      "approved": "Worker approved",
+      "changes_requested": "Changes requested",
+      "rejected": "Application rejected",
+      "suspend": "Worker suspended",
+      "reinstate": "Worker reinstated"
+    },
+    "noteOptional": "Note (optional)",
+    "reasonRequired": "Reason (required)",
+    "reasonShownToWorker": "The worker will see this.",
+    "when": "When",
+    "who": "Who",
+    "action": "Action",
+    "target": "Target",
+    "reason": "Reason",
+    "workerTarget": "Worker profile",
+    "noAudit": "Nothing logged yet"
+  },
+  "profile": {
+    "title": "Your profile",
+    "name": "Full name",
+    "phone": "Mobile",
+    "saved": "Profile saved"
+  },
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "comingSoon": "Coming soon",
+    "remove": "Remove",
+    "optional": "optional",
+    "confirm": "Confirm"
+  },
+  "onboarding": {
+    "title": "Set up your Workerly Pro profile",
+    "steps": {
+      "about": "About you",
+      "skills": "Your services",
+      "area": "Where you work",
+      "documents": "ID documents",
+      "review": "Submit for verification"
+    },
+    "photo": "Profile photo",
+    "addPhoto": "Add photo",
+    "changePhoto": "Change photo",
+    "photoHint": "A clear photo of your face. Customers see it.",
+    "experience": "Years of experience",
+    "bio": "About your work",
+    "bioPlaceholder": "e.g. Bathroom fittings, leak repair, geyser installation",
+    "saveContinue": "Save and continue",
+    "continue": "Continue",
+    "fileTooBig": "File is too large (max {mb} MB).",
+    "skillsHint": "Pick the services you do. You will only get jobs for these.",
+    "years": "Years",
+    "city": "City",
+    "areaCenter": "Centre of your area",
+    "centerCity": "Using the centre of {city}. Use your location for better matches.",
+    "centerGps": "Using your current location.",
+    "useMyLocation": "Use my location",
+    "gpsUnavailable": "Location isn't available on this device.",
+    "gpsDenied": "We couldn't get your location. Check location permission.",
+    "radius": "How far you'll travel: {km} km",
+    "areaLabel": "Name (optional)",
+    "areaLabelHint": "e.g. Phase 7 or Sector 70",
+    "addArea": "Add area",
+    "withinKm": "within {km} km",
+    "documentsHint": "Upload a photo or PDF. We only use these to verify you; customers never see them.",
+    "docType": "Document type",
+    "last4": "Last 4 digits/letters of the number",
+    "last4Hint": "We store only these 4 characters.",
+    "file": "Photo or PDF",
+    "fileHint": "JPG, PNG, HEIC or PDF, up to 10 MB",
+    "upload": "Upload",
+    "maskedAadhaar": "Upload a masked Aadhaar only (first 8 digits hidden). Download it from the UIDAI website or app.",
+    "docRejected": "Previous document was rejected: {reason}",
+    "stillMissing": "Before you can submit, please add:",
+    "readyToSubmit": "Everything is ready. Our team usually reviews profiles within 1–2 working days.",
+    "submit": "Submit for verification",
+    "changesRequested": "Our team asked for changes:"
+  },
+  "missing": {
+    "name": "Your name",
+    "photo": "A profile photo",
+    "experience_years": "Years of experience",
+    "skills": "At least one service",
+    "service_area": "At least one area where you work",
+    "document_identity": "An ID proof",
+    "document_address": "An address proof"
+  },
+  "docKinds": {
+    "identity": "ID proof",
+    "address": "Address proof",
+    "trade": "Trade certificate"
+  },
+  "docTypes": {
+    "aadhaar_masked": "Masked Aadhaar",
+    "pan": "PAN card",
+    "voter_id": "Voter ID",
+    "driving_licence": "Driving licence",
+    "passport": "Passport",
+    "utility_bill": "Electricity/water bill",
+    "rent_agreement": "Rent agreement",
+    "trade_certificate": "Trade/ITI certificate",
+    "other": "Other certificate"
+  },
+  "docStatus": {
+    "pending": "Under review",
+    "approved": "Verified",
+    "rejected": "Rejected",
+    "superseded": "Replaced"
+  },
+  "verification": {
+    "title": "Verification",
+    "reason": "Note from our team",
+    "documents": "Documents",
+    "pending_review": {
+      "title": "We're reviewing your profile",
+      "body": "This usually takes 1–2 working days. We'll send you an SMS when it's done."
+    },
+    "approved": {
+      "title": "You're verified",
+      "body": "You can now receive jobs."
+    },
+    "rejected": {
+      "title": "Application not approved",
+      "body": "Unfortunately we couldn't approve your profile. Contact support if you think this is a mistake."
+    },
+    "suspended": {
+      "title": "Account suspended",
+      "body": "You won't receive jobs while your account is suspended. Please contact support."
+    },
+    "changes_requested": {
+      "title": "Changes needed",
+      "body": "Please update your profile."
+    },
+    "draft": {
+      "title": "Profile not submitted",
+      "body": "Finish your profile to get verified."
+    }
+  }
 }

@@ -2,7 +2,9 @@ module Api
   module V1
     class BaseController < ActionController::API
       include Pundit::Authorization
+      include ActiveStorage::SetCurrent # host for expiring Disk-service URLs in development
 
+      before_action :set_request_context
       before_action :authenticate!
       after_action :no_store
 
@@ -11,7 +13,7 @@ module Api
       rescue_from ActiveRecord::RecordNotFound, with: -> { render_error(:not_found, :not_found) }
       rescue_from ActiveRecord::RecordInvalid, with: :render_record_invalid
       rescue_from ActionController::ParameterMissing, with: ->(e) { render_error(:bad_request, :parameter_missing, details: { param: e.param }) }
-      rescue_from Pundit::NotAuthorizedError, with: -> { render_error(:forbidden, :forbidden) }
+      rescue_from Pundit::NotAuthorizedError, with: ->(e) { render_error(:forbidden, e.policy.try(:denial_reason) || :forbidden) }
 
       attr_reader :current_auth
 
@@ -25,6 +27,24 @@ module Api
 
       def authenticate!
         @current_auth = Identity::Authenticate.call(bearer_token)
+        Current.auth = @current_auth
+      end
+
+      def set_request_context
+        Current.request_id = request.request_id
+        Current.ip = request.remote_ip
+        Current.user_agent = request.user_agent
+      end
+
+      def require_role!(*roles)
+        return if roles.map(&:to_s).include?(current_role)
+
+        raise ApplicationError.forbidden(:role_required, I18n.t("errors.role_required", roles: roles.join(", ")))
+      end
+
+      def paginate(scope, order:)
+        page = Shared::Pagination.call(scope, order:, cursor: params[:cursor], limit: params[:limit])
+        [ page.records, { next_cursor: page.next_cursor } ]
       end
 
       def bearer_token

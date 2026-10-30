@@ -65,6 +65,327 @@ components:
         created_at:
           type: string
           format: date-time
+    file:
+      type: object
+      nullable: true
+      properties:
+        url:
+          type: string
+        content_type:
+          type: string
+        byte_size:
+          type: integer
+        filename:
+          type: string
+        expires_in:
+          type: integer
+    category:
+      type: object
+      required:
+      - slug
+      - name
+      - children
+      properties:
+        slug:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+          nullable: true
+        icon:
+          type: string
+          nullable: true
+        inspection_allowed:
+          type: boolean
+        children:
+          type: array
+          items:
+            "$ref": "#/components/schemas/category"
+    city:
+      type: object
+      required:
+      - slug
+      - name
+      - center
+      properties:
+        slug:
+          type: string
+        name:
+          type: string
+        state:
+          type: string
+        currency_code:
+          type: string
+        time_zone:
+          type: string
+        service_radius_m:
+          type: integer
+        center:
+          "$ref": "#/components/schemas/lat_lng"
+    lat_lng:
+      type: object
+      required:
+      - lat
+      - lng
+      properties:
+        lat:
+          type: number
+        lng:
+          type: number
+    service_area:
+      type: object
+      required:
+      - id
+      - city
+      - center
+      - radius_m
+      properties:
+        id:
+          type: string
+        city:
+          type: string
+        label:
+          type: string
+          nullable: true
+        radius_m:
+          type: integer
+        center:
+          "$ref": "#/components/schemas/lat_lng"
+    worker_document:
+      type: object
+      required:
+      - id
+      - kind
+      - doc_type
+      - status
+      properties:
+        id:
+          type: string
+        kind:
+          type: string
+          enum:
+          - identity
+          - address
+          - trade
+        doc_type:
+          type: string
+        number_last4:
+          type: string
+          nullable: true
+        status:
+          type: string
+          enum:
+          - pending
+          - approved
+          - rejected
+          - superseded
+        rejection_reason:
+          type: string
+          nullable: true
+        reviewed_at:
+          type: string
+          nullable: true
+        uploaded_at:
+          type: string
+        file:
+          "$ref": "#/components/schemas/file"
+    verification_status:
+      type: string
+      enum:
+      - draft
+      - pending_review
+      - changes_requested
+      - approved
+      - rejected
+    worker_profile:
+      type: object
+      required:
+      - id
+      - verification_status
+      - editable
+      - suspended
+      - skills
+      - service_areas
+      - documents
+      - missing
+      properties:
+        id:
+          type: string
+        bio:
+          type: string
+          nullable: true
+        experience_years:
+          type: integer
+          nullable: true
+        verification_status:
+          "$ref": "#/components/schemas/verification_status"
+        available:
+          type: boolean
+        editable:
+          type: boolean
+        suspended:
+          type: boolean
+        rating_avg:
+          type: number
+          nullable: true
+        rating_count:
+          type: integer
+        submitted_at:
+          type: string
+          nullable: true
+        approved_at:
+          type: string
+          nullable: true
+        photo:
+          "$ref": "#/components/schemas/file"
+        skills:
+          type: array
+          items:
+            type: object
+            properties:
+              category:
+                type: string
+              name:
+                type: string
+              experience_years:
+                type: integer
+                nullable: true
+        service_areas:
+          type: array
+          items:
+            "$ref": "#/components/schemas/service_area"
+        documents:
+          type: array
+          items:
+            "$ref": "#/components/schemas/worker_document"
+        missing:
+          type: array
+          items:
+            type: string
+        last_decision:
+          type: object
+          nullable: true
+          properties:
+            decision:
+              type: string
+            reason:
+              type: string
+              nullable: true
+            decided_at:
+              type: string
+    admin_worker_summary:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+          nullable: true
+        phone:
+          type: string
+        verification_status:
+          "$ref": "#/components/schemas/verification_status"
+        experience_years:
+          type: integer
+          nullable: true
+        suspended:
+          type: boolean
+        skills:
+          type: array
+          items:
+            type: string
+        submitted_at:
+          type: string
+          nullable: true
+        created_at:
+          type: string
+    admin_worker_detail:
+      type: object
+      properties:
+        id:
+          type: string
+        bio:
+          type: string
+          nullable: true
+        experience_years:
+          type: integer
+          nullable: true
+        verification_status:
+          "$ref": "#/components/schemas/verification_status"
+        suspended:
+          type: boolean
+        suspension_reason:
+          type: string
+          nullable: true
+        submitted_at:
+          type: string
+          nullable: true
+        approved_at:
+          type: string
+          nullable: true
+        user:
+          type: object
+          properties:
+            id:
+              type: string
+            name:
+              type: string
+              nullable: true
+            phone:
+              type: string
+            created_at:
+              type: string
+        photo:
+          "$ref": "#/components/schemas/file"
+        skills:
+          type: array
+          items:
+            type: object
+            properties:
+              category:
+                type: string
+              name:
+                type: string
+              experience_years:
+                type: integer
+                nullable: true
+        service_areas:
+          type: array
+          items:
+            "$ref": "#/components/schemas/service_area"
+        documents:
+          type: array
+          items:
+            "$ref": "#/components/schemas/worker_document"
+        missing:
+          type: array
+          items:
+            type: string
+        history:
+          type: array
+          items:
+            type: object
+            properties:
+              decision:
+                type: string
+              reason:
+                type: string
+                nullable: true
+              documents:
+                type: array
+                items:
+                  type: object
+              by:
+                type: string
+              at:
+                type: string
+    page_meta:
+      type: object
+      properties:
+        next_cursor:
+          type: string
+          nullable: true
     auth_session:
       type: object
       required:
@@ -312,3 +633,374 @@ paths:
                       type: string
                     locale:
                       type: string
+  "/api/v1/categories":
+    get:
+      summary: Active service categories (tree)
+      tags:
+      - Catalog
+      responses:
+        '200':
+          description: ok
+  "/api/v1/cities":
+    get:
+      summary: Launched cities
+      tags:
+      - Catalog
+      responses:
+        '200':
+          description: ok
+  "/api/v1/worker/registration":
+    post:
+      summary: Become a worker (customer -> worker)
+      tags:
+      - Worker onboarding
+      security:
+      - bearer: []
+      parameters:
+      - name: Authorization
+        in: header
+        schema:
+          type: string
+      responses:
+        '201':
+          description: registered; returns a worker-role access token
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+  "/api/v1/worker/profile":
+    get:
+      summary: Own worker profile
+      tags:
+      - Worker onboarding
+      security:
+      - bearer: []
+      parameters:
+      - name: Authorization
+        in: header
+        schema:
+          type: string
+      responses:
+        '200':
+          description: ok
+    patch:
+      summary: Update bio and experience (send multipart with profile[photo] to upload
+        a photo)
+      tags:
+      - Worker onboarding
+      security:
+      - bearer: []
+      parameters:
+      - name: Authorization
+        in: header
+        schema:
+          type: string
+      responses:
+        '200':
+          description: updated
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                profile:
+                  type: object
+                  properties:
+                    bio:
+                      type: string
+                    experience_years:
+                      type: integer
+  "/api/v1/worker/skills":
+    put:
+      summary: Replace skills
+      tags:
+      - Worker onboarding
+      security:
+      - bearer: []
+      parameters:
+      - name: Authorization
+        in: header
+        schema:
+          type: string
+      responses:
+        '200':
+          description: replaced
+        '422':
+          description: unknown category
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - skills
+              properties:
+                skills:
+                  type: array
+                  items:
+                    type: object
+                    required:
+                    - category
+                    properties:
+                      category:
+                        type: string
+                      experience_years:
+                        type: integer
+  "/api/v1/worker/service_areas":
+    post:
+      summary: Add a service area (max 3)
+      tags:
+      - Worker onboarding
+      security:
+      - bearer: []
+      parameters:
+      - name: Authorization
+        in: header
+        schema:
+          type: string
+      responses:
+        '201':
+          description: created
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - city
+              - lat
+              - lng
+              - radius_m
+              properties:
+                city:
+                  type: string
+                lat:
+                  type: number
+                lng:
+                  type: number
+                radius_m:
+                  type: integer
+                  minimum: 500
+                  maximum: 50000
+                label:
+                  type: string
+  "/api/v1/worker/documents":
+    post:
+      summary: Upload a verification document (JPEG/PNG/WebP/HEIC/PDF, max 10 MB)
+      tags:
+      - Worker onboarding
+      security:
+      - bearer: []
+      parameters:
+      - name: Authorization
+        in: header
+        schema:
+          type: string
+      responses:
+        '201':
+          description: uploaded
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: string
+              enum:
+              - identity
+              - address
+              - trade
+  "/api/v1/worker/profile/submit_for_review":
+    post:
+      summary: Submit for verification
+      tags:
+      - Worker onboarding
+      security:
+      - bearer: []
+      parameters:
+      - name: Authorization
+        in: header
+        schema:
+          type: string
+      responses:
+        '200':
+          description: submitted
+        '422':
+          description: incomplete (details.missing lists what's left)
+  "/api/v1/worker/leads":
+    get:
+      summary: Leads (approved workers only)
+      tags:
+      - Worker leads
+      security:
+      - bearer: []
+      parameters:
+      - name: Authorization
+        in: header
+        schema:
+          type: string
+      responses:
+        '200':
+          description: ok
+        '403':
+          description: not verified
+  "/api/v1/admin/workers":
+    get:
+      summary: Worker list / review queue
+      tags:
+      - Admin
+      security:
+      - bearer: []
+      parameters:
+      - name: Authorization
+        in: header
+        schema:
+          type: string
+      - name: filter[status]
+        in: query
+        required: false
+        schema:
+          "$ref": "#/components/schemas/verification_status"
+      - name: q
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: cursor
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+      responses:
+        '200':
+          description: ok
+  "/api/v1/admin/workers/{id}":
+    get:
+      summary: Worker detail with documents
+      tags:
+      - Admin
+      security:
+      - bearer: []
+      parameters:
+      - name: Authorization
+        in: header
+        schema:
+          type: string
+      - name: id
+        in: path
+        schema:
+          type: string
+        required: true
+      responses:
+        '200':
+          description: ok
+  "/api/v1/admin/workers/{id}/verification":
+    post:
+      summary: Decide on a submitted worker
+      tags:
+      - Admin
+      security:
+      - bearer: []
+      parameters:
+      - name: Authorization
+        in: header
+        schema:
+          type: string
+      - name: id
+        in: path
+        schema:
+          type: string
+        required: true
+      responses:
+        '200':
+          description: approved
+        '422':
+          description: documents still pending
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - decision
+              properties:
+                decision:
+                  type: string
+                  enum:
+                  - approved
+                  - changes_requested
+                  - rejected
+                reason:
+                  type: string
+                documents:
+                  type: array
+                  items:
+                    type: object
+                    required:
+                    - id
+                    - status
+                    properties:
+                      id:
+                        type: string
+                      status:
+                        type: string
+                        enum:
+                        - approved
+                        - rejected
+                      reason:
+                        type: string
+  "/api/v1/admin/workers/{id}/suspend":
+    post:
+      summary: Suspend a worker (admin, support)
+      tags:
+      - Admin
+      security:
+      - bearer: []
+      parameters:
+      - name: Authorization
+        in: header
+        schema:
+          type: string
+      - name: id
+        in: path
+        schema:
+          type: string
+        required: true
+      responses:
+        '200':
+          description: suspended
+        '403':
+          description: verifiers can't suspend
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - reason
+              properties:
+                reason:
+                  type: string
+  "/api/v1/admin/audit_logs":
+    get:
+      summary: Audit log (admin)
+      tags:
+      - Admin
+      security:
+      - bearer: []
+      parameters:
+      - name: Authorization
+        in: header
+        schema:
+          type: string
+      responses:
+        '200':
+          description: ok

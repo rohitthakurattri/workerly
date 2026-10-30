@@ -2,6 +2,8 @@
 # so policies decide on the role the caller is acting as, not every role they hold.
 class ApplicationPolicy
   attr_reader :auth, :record
+  # Optional machine-readable reason, rendered as the error code when a check fails.
+  attr_reader :denial_reason
 
   def initialize(auth, record)
     @auth = auth
@@ -10,6 +12,7 @@ class ApplicationPolicy
 
   def user = auth&.user
   def role = auth&.role
+  def staff_role?(*roles) = !!auth&.session&.staff? && roles.map(&:to_s).include?(role)
 
   def index? = false
   def show? = false
@@ -26,5 +29,12 @@ class ApplicationPolicy
     end
 
     def resolve = scope.none
+  end
+
+  private
+
+  def deny(reason)
+    @denial_reason = reason
+    false
   end
 end

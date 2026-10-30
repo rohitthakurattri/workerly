@@ -10,6 +10,7 @@ class User < ApplicationRecord
 
   has_many :user_roles, dependent: :destroy
   has_many :user_sessions, dependent: :destroy
+  has_one :worker_profile, dependent: :restrict_with_error
 
   validates :phone_e164, presence: true, format: { with: Identity::PhoneNumber::E164 }
   validates :status, inclusion: { in: STATUSES }

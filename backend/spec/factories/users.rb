@@ -20,6 +20,20 @@ FactoryBot.define do
       end
     end
 
+    trait :verifier do
+      after(:create) do |user|
+        user.grant_role!(:verifier)
+        Identity::Totp.provision!(user) unless user.totp_enabled?
+      end
+    end
+
+    trait :support do
+      after(:create) do |user|
+        user.grant_role!(:support)
+        Identity::Totp.provision!(user) unless user.totp_enabled?
+      end
+    end
+
     trait :finance do
       after(:create) do |user|
         user.grant_role!(:finance)

@@ -5,7 +5,7 @@ import { resolve } from 'node:path'
 
 const backend = resolve(import.meta.dirname, '../../backend')
 
-export interface Seed { phones: { dual: string, admin: string, logout: string, fresh: string }, totp_secret: string }
+export interface Seed { phones: { dual: string, admin: string, logout: string, fresh: string, new_worker: string }, totp_secret: string }
 
 export function seed(): Seed {
   const out = execFileSync('bin/rails', ['runner', 'script/e2e_seed.rb'], { cwd: backend, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] })

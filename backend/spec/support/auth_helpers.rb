@@ -18,6 +18,18 @@ module AuthHelpers
     json_headers("Authorization" => "Bearer #{issued.access_token}")
   end
 
+  def staff_headers_for(user, role:) = auth_headers_for(user, scope: "staff", role:)
+
+  # Multipart requests must not carry the JSON content type.
+  def multipart_headers(headers) = headers.except("Content-Type")
+
+  def fixture(name, type) = Rack::Test::UploadedFile.new(Rails.root.join("spec/fixtures/files", name), type)
+
+  # Staff context for calling admin services directly in specs.
+  def staff_auth(user, role:)
+    Identity::Authenticate::Current.new(user:, role:, session: Identity::Sessions.start(user:, scope: "staff", role:, mfa: true).session)
+  end
+
   # Runs the real OTP flow and returns the code that was "sent".
   def request_otp_code(phone)
     perform_enqueued_jobs { Identity::RequestOtp.call(phone:) }
@@ -30,4 +42,8 @@ module AuthHelpers
   end
 end
 
-RSpec.configure { |c| c.include AuthHelpers, type: :request }
+RSpec.configure do |c|
+  c.include AuthHelpers, type: :request
+  c.include AuthHelpers, type: :service
+  c.include AuthHelpers, type: :model
+end
