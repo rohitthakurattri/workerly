@@ -10,7 +10,6 @@ const city = ref('')
 const radiusKm = ref(5)
 const label = ref('')
 const point = ref<{ lat: number, lng: number } | null>(null)
-const usingGps = ref(false)
 const error = ref<string | null>(null)
 const busy = ref(false)
 
@@ -20,29 +19,10 @@ watch(cities, (list) => {
 }, { immediate: true })
 watch(city, () => {
   point.value = null
-  usingGps.value = false
 })
 
-// Until the map picker lands (Phase 3), the centre is the worker's GPS position or the city centre.
+// The centre is the pin the worker placed (tap, drag or GPS), else the city centre.
 const center = computed(() => point.value ?? selectedCity.value?.center ?? null)
-
-function useMyLocation() {
-  error.value = null
-  if (!('geolocation' in navigator)) {
-    error.value = t('onboarding.gpsUnavailable')
-    return
-  }
-  navigator.geolocation.getCurrentPosition(
-    (pos) => {
-      point.value = { lat: Number(pos.coords.latitude.toFixed(6)), lng: Number(pos.coords.longitude.toFixed(6)) }
-      usingGps.value = true
-    },
-    () => {
-      error.value = t('onboarding.gpsDenied')
-    },
-    { enableHighAccuracy: true, timeout: 10_000 },
-  )
-}
 
 async function add() {
   if (!center.value) return
@@ -112,17 +92,14 @@ const cityName = (slug: string) => cities.value.find(c => c.slug === slug)?.name
       <div class="flex flex-col gap-2">
         <span class="text-sm font-medium">{{ t('onboarding.areaCenter') }}</span>
         <p class="text-sm text-ink-muted">
-          {{ usingGps ? t('onboarding.centerGps') : t('onboarding.centerCity', { city: selectedCity?.name ?? '' }) }}
+          {{ point ? t('onboarding.centerGps') : t('onboarding.centerCity', { city: selectedCity?.name ?? '' }) }}
         </p>
-        <div>
-          <UiButton
-            variant="secondary"
-            size="sm"
-            @click="useMyLocation"
-          >
-            📍 {{ t('onboarding.useMyLocation') }}
-          </UiButton>
-        </div>
+        <SharedMapPicker
+          v-model="point"
+          :fallback="selectedCity?.center ?? null"
+          :radius-m="radiusKm * 1000"
+          :label="t('onboarding.areaCenter')"
+        />
       </div>
       <div class="flex flex-col gap-1.5">
         <label

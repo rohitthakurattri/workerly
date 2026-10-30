@@ -95,6 +95,63 @@ RSpec.configure do |config|
               history: { type: :array, items: { type: :object, properties: { decision: { type: :string }, reason: { type: :string, nullable: true }, documents: { type: :array, items: { type: :object } }, by: { type: :string }, at: { type: :string } } } }
             }
           },
+          category_brief: {
+            type: :object, required: %w[slug name],
+            properties: { slug: { type: :string }, name: { type: :string }, icon: { type: :string, nullable: true } }
+          },
+          address: {
+            type: :object, required: %w[id line1 locality pincode city location is_default],
+            properties: { id: { type: :string }, label: { type: :string, nullable: true }, line1: { type: :string },
+                          line2: { type: :string, nullable: true }, landmark: { type: :string, nullable: true },
+                          locality: { type: :string }, pincode: { type: :string }, city: { type: :string },
+                          is_default: { type: :boolean }, location: { "$ref" => "#/components/schemas/lat_lng" } }
+          },
+          request_status: { type: :string, enum: %w[draft open quoting booked fulfilled expired cancelled] },
+          urgency: { type: :string, enum: %w[asap today this_week flexible] },
+          request_photo: {
+            type: :object, required: %w[id kind file],
+            properties: { id: { type: :string }, kind: { type: :string, enum: %w[image audio video] },
+                          width: { type: :integer, nullable: true }, height: { type: :integer, nullable: true },
+                          file: { "$ref" => "#/components/schemas/file" } }
+          },
+          triage: {
+            type: :object, required: %w[id confidence alternatives questions safety_flag needs_confirmation],
+            properties: { id: { type: :string }, suggested_category: { allOf: [ { "$ref" => "#/components/schemas/category_brief" } ], nullable: true },
+                          confidence: { type: :number }, summary: { type: :string, nullable: true },
+                          questions: { type: :array, items: { type: :string } },
+                          urgency: { allOf: [ { "$ref" => "#/components/schemas/urgency" } ], nullable: true },
+                          safety_flag: { type: :boolean }, needs_confirmation: { type: :boolean },
+                          alternatives: { type: :array, items: { "$ref" => "#/components/schemas/category_brief" } } }
+          },
+          service_request: {
+            type: :object, required: %w[id status answers safety_flag urgency photos missing cancellable created_at],
+            properties: {
+              id: { type: :string }, status: { "$ref" => "#/components/schemas/request_status" },
+              description: { type: :string, nullable: true },
+              answers: { type: :array, items: { type: :object, required: %w[question answer], properties: { question: { type: :string }, answer: { type: :string } } } },
+              ai_summary: { type: :string, nullable: true }, safety_flag: { type: :boolean },
+              urgency: { "$ref" => "#/components/schemas/urgency" },
+              category_source: { type: :string, enum: %w[ai customer], nullable: true },
+              category: { allOf: [ { "$ref" => "#/components/schemas/category_brief" } ], nullable: true },
+              address: { allOf: [ { "$ref" => "#/components/schemas/address" } ], nullable: true },
+              preferred_from: { type: :string, nullable: true }, preferred_to: { type: :string, nullable: true },
+              photos: { type: :array, items: { "$ref" => "#/components/schemas/request_photo" } },
+              triage: { allOf: [ { "$ref" => "#/components/schemas/triage" } ], nullable: true },
+              missing: { type: :array, items: { type: :string, enum: %w[description category address] } },
+              cancellable: { type: :boolean }, cancel_reason: { type: :string, nullable: true },
+              created_at: { type: :string }, submitted_at: { type: :string, nullable: true },
+              expires_at: { type: :string, nullable: true }, cancelled_at: { type: :string, nullable: true }
+            }
+          },
+          service_request_summary: {
+            type: :object, required: %w[id status urgency photo_count created_at],
+            properties: { id: { type: :string }, status: { "$ref" => "#/components/schemas/request_status" },
+                          urgency: { "$ref" => "#/components/schemas/urgency" }, title: { type: :string, nullable: true },
+                          category: { allOf: [ { "$ref" => "#/components/schemas/category_brief" } ], nullable: true },
+                          locality: { type: :string, nullable: true }, photo_count: { type: :integer },
+                          cover: { "$ref" => "#/components/schemas/file" }, created_at: { type: :string },
+                          submitted_at: { type: :string, nullable: true }, expires_at: { type: :string, nullable: true } }
+          },
           page_meta: { type: :object, properties: { next_cursor: { type: :string, nullable: true } } },
           auth_session: {
             type: :object, required: %w[data],

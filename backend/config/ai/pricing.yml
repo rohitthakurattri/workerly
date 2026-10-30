@@ -1,0 +1,5 @@
+# Provider prices in micro-units (millionths) of `currency` per million tokens, keyed by provider/model.
+# Copy them from the provider's price list when a model is chosen; with no entry, cost_micros stays empty.
+# Example:
+#   openai/some-model: { currency: USD, input: 150000, output: 600000 }
+{}

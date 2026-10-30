@@ -1,11 +1,16 @@
 import { execFileSync } from 'node:child_process'
+import type { Page } from '@playwright/test'
 import { createHmac } from 'node:crypto'
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 
 const backend = resolve(import.meta.dirname, '../../backend')
 
-export interface Seed { phones: { dual: string, admin: string, logout: string, fresh: string, new_worker: string }, totp_secret: string }
+export interface Seed {
+  phones: { dual: string, admin: string, logout: string, fresh: string, new_worker: string, customer: string }
+  totp_secret: string
+  camera_photo: string
+}
 
 export function seed(): Seed {
   const out = execFileSync('bin/rails', ['runner', 'script/e2e_seed.rb'], { cwd: backend, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] })
@@ -43,4 +48,14 @@ export function totp(base32: string, at = Date.now()): string {
   const h = createHmac('sha1', key).update(counter).digest()
   const o = h[h.length - 1]! & 0xF
   return String((h.readUInt32BE(o) & 0x7FFFFFFF) % 1_000_000).padStart(6, '0')
+}
+
+/** Consumer OTP login on one of the apps (customer :3001 or worker :3002). */
+export async function login(page: Page, base: string, phone: string) {
+  await page.goto(`${base}/login`)
+  await page.getByLabel('Mobile number').fill(phone.replace('+91', ''))
+  const since = new Date()
+  await page.getByRole('button', { name: 'Send code' }).click()
+  await page.getByLabel('6-digit code').fill(await otpFor(phone, since))
+  await page.getByRole('button', { name: 'Continue' }).click()
 }

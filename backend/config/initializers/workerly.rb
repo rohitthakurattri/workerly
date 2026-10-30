@@ -8,7 +8,9 @@ module Workerly
     end
   end
 
-  Config = Struct.new(:jwt_secret, :otp_pepper, :token_pepper, :sms_adapter, :secure_cookies, keyword_init: true)
+  Config = Struct.new(:jwt_secret, :otp_pepper, :token_pepper, :sms_adapter, :secure_cookies,
+                      :ai_adapter, :ai_triage_enabled, :ai_triage_model, :ai_user_daily_limit, :ai_global_daily_limit,
+                      :request_ttl_hours, keyword_init: true)
 
   def self.config
     @config ||= Config.new(
@@ -16,7 +18,15 @@ module Workerly
       otp_pepper: secret("OTP_PEPPER"),
       token_pepper: secret("TOKEN_PEPPER"),
       sms_adapter: ENV.fetch("SMS_ADAPTER", "fake"),
-      secure_cookies: Rails.env.production?
+      secure_cookies: Rails.env.production?,
+      # AI triage is behind a flag: off in production until a provider and budget are approved.
+      ai_adapter: ENV.fetch("AI_ADAPTER", "fake"),
+      ai_triage_enabled: ENV.fetch("AI_TRIAGE_ENABLED", Rails.env.production? ? "false" : "true") == "true",
+      ai_triage_model: ENV["AI_TRIAGE_MODEL"],
+      ai_user_daily_limit: ENV.fetch("AI_USER_DAILY_LIMIT", "20").to_i,
+      ai_global_daily_limit: ENV.fetch("AI_GLOBAL_DAILY_LIMIT", "5000").to_i,
+      # How long a submitted request stays open for quotes (D5, still pending: 24 h proposed).
+      request_ttl_hours: ENV.fetch("REQUEST_TTL_HOURS", "24").to_i
     ).freeze
   end
 end

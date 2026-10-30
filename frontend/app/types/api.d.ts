@@ -385,6 +385,513 @@ export interface paths {
         };
         trace?: never;
     };
+    "/api/v1/customer/addresses": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Saved addresses (default first) */
+        get: {
+            parameters: {
+                query?: never;
+                header?: {
+                    Authorization?: string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description ok */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        /** Add an address (the city is derived from the pin) */
+        post: {
+            parameters: {
+                query?: never;
+                header?: {
+                    Authorization?: string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": {
+                        label?: string;
+                        line1: string;
+                        line2?: string;
+                        landmark?: string;
+                        locality: string;
+                        pincode: string;
+                        lat: number;
+                        lng: number;
+                        is_default?: boolean;
+                    };
+                };
+            };
+            responses: {
+                /** @description created */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description pin outside the launched cities */
+                422: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/customer/addresses/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Remove an address (soft delete) */
+        delete: {
+            parameters: {
+                query?: never;
+                header?: {
+                    Authorization?: string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description removed */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        /** Edit an address (submitted requests keep their copy) */
+        patch: {
+            parameters: {
+                query?: never;
+                header?: {
+                    Authorization?: string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": Record<string, never>;
+                };
+            };
+            responses: {
+                /** @description updated */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        trace?: never;
+    };
+    "/api/v1/customer/service_requests": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Own requests, newest first */
+        get: {
+            parameters: {
+                query?: {
+                    "filter[status]"?: "active" | "draft" | "past";
+                    cursor?: string;
+                };
+                header?: {
+                    Authorization?: string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description ok */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        /** Start a draft */
+        post: {
+            parameters: {
+                query?: never;
+                header?: {
+                    Authorization?: string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": {
+                        description?: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description draft created */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/customer/service_requests/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        /** One request */
+        get: {
+            parameters: {
+                query?: never;
+                header?: {
+                    Authorization?: string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description ok */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description someone else's request */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        /** Discard a draft */
+        delete: {
+            parameters: {
+                query?: never;
+                header?: {
+                    Authorization?: string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description discarded */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        /** Edit a draft */
+        patch: {
+            parameters: {
+                query?: never;
+                header?: {
+                    Authorization?: string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": {
+                        description?: string;
+                        category?: string;
+                        address?: string;
+                        urgency?: components["schemas"]["urgency"];
+                        /** Format: date-time */
+                        preferred_from?: string;
+                        /** Format: date-time */
+                        preferred_to?: string;
+                        answers?: {
+                            question?: string;
+                            answer?: string;
+                        }[];
+                    };
+                };
+            };
+            responses: {
+                /** @description updated */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description already submitted */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        trace?: never;
+    };
+    "/api/v1/customer/service_requests/{id}/submit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Submit a draft (draft -> open) */
+        post: {
+            parameters: {
+                query?: never;
+                header?: {
+                    Authorization?: string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description submitted */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description incomplete */
+                422: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/customer/service_requests/{id}/cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Cancel an open request */
+        post: {
+            parameters: {
+                query?: never;
+                header?: {
+                    Authorization?: string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": {
+                        reason?: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description cancelled */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/customer/service_requests/{id}/attachments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Add a photo (re-encoded to JPEG, EXIF and GPS removed, max 2048 px) */
+        post: {
+            parameters: {
+                query?: never;
+                header?: {
+                    Authorization?: string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "multipart/form-data": string;
+                };
+            };
+            responses: {
+                /** @description added */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/customer/service_requests/{id}/triage": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** AI suggestion: category, summary, follow-up questions (behind AI_TRIAGE_ENABLED) */
+        post: {
+            parameters: {
+                query?: never;
+                header?: {
+                    Authorization?: string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description suggestion */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description AI off or failing: the customer picks the category */
+                503: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/categories": {
         parameters: {
             query?: never;
@@ -1152,6 +1659,86 @@ export interface components {
                 by?: string;
                 at?: string;
             }[];
+        };
+        category_brief: {
+            slug: string;
+            name: string;
+            icon?: string | null;
+        };
+        address: {
+            id: string;
+            label?: string | null;
+            line1: string;
+            line2?: string | null;
+            landmark?: string | null;
+            locality: string;
+            pincode: string;
+            city: string;
+            is_default: boolean;
+            location: components["schemas"]["lat_lng"];
+        };
+        /** @enum {string} */
+        request_status: "draft" | "open" | "quoting" | "booked" | "fulfilled" | "expired" | "cancelled";
+        /** @enum {string} */
+        urgency: "asap" | "today" | "this_week" | "flexible";
+        request_photo: {
+            id: string;
+            /** @enum {string} */
+            kind: "image" | "audio" | "video";
+            width?: number | null;
+            height?: number | null;
+            file: components["schemas"]["file"];
+        };
+        triage: {
+            id: string;
+            suggested_category?: components["schemas"]["category_brief"] | null;
+            confidence: number;
+            summary?: string | null;
+            questions: string[];
+            urgency?: components["schemas"]["urgency"] | null;
+            safety_flag: boolean;
+            needs_confirmation: boolean;
+            alternatives: components["schemas"]["category_brief"][];
+        };
+        service_request: {
+            id: string;
+            status: components["schemas"]["request_status"];
+            description?: string | null;
+            answers: {
+                question: string;
+                answer: string;
+            }[];
+            ai_summary?: string | null;
+            safety_flag: boolean;
+            urgency: components["schemas"]["urgency"];
+            /** @enum {string|null} */
+            category_source?: "ai" | "customer" | null;
+            category?: components["schemas"]["category_brief"] | null;
+            address?: components["schemas"]["address"] | null;
+            preferred_from?: string | null;
+            preferred_to?: string | null;
+            photos: components["schemas"]["request_photo"][];
+            triage?: components["schemas"]["triage"] | null;
+            missing: ("description" | "category" | "address")[];
+            cancellable: boolean;
+            cancel_reason?: string | null;
+            created_at: string;
+            submitted_at?: string | null;
+            expires_at?: string | null;
+            cancelled_at?: string | null;
+        };
+        service_request_summary: {
+            id: string;
+            status: components["schemas"]["request_status"];
+            urgency: components["schemas"]["urgency"];
+            title?: string | null;
+            category?: components["schemas"]["category_brief"] | null;
+            locality?: string | null;
+            photo_count: number;
+            cover?: components["schemas"]["file"];
+            created_at: string;
+            submitted_at?: string | null;
+            expires_at?: string | null;
         };
         page_meta: {
             next_cursor?: string | null;

@@ -11,7 +11,7 @@ Home-services marketplace for Mohali and Chandigarh: customers post a problem, v
 
 ## Run it locally
 
-Requires Ruby 3.4, Node 24 and Docker.
+Requires Ruby 3.4, Node 24, Docker and ImageMagick (photo processing).
 
 ```bash
 docker compose up -d                      # Postgres+PostGIS on :5433, Redis on :6380

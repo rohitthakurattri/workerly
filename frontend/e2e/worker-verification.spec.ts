@@ -1,6 +1,6 @@
 import { resolve } from 'node:path'
-import { expect, test, type Page } from '@playwright/test'
-import { otpFor, seed, totp, type Seed } from './helpers'
+import { expect, test } from '@playwright/test'
+import { login, seed, totp, type Seed } from './helpers'
 
 // Phase 2 exit gate: a new worker onboards, an admin approves them, and only then do they reach leads.
 const WORKER = 'http://localhost:3002'
@@ -11,15 +11,6 @@ let data: Seed
 test.beforeAll(() => {
   data = seed()
 })
-
-async function login(page: Page, base: string, phone: string) {
-  await page.goto(`${base}/login`)
-  await page.getByLabel('Mobile number').fill(phone.replace('+91', ''))
-  const since = new Date()
-  await page.getByRole('button', { name: 'Send code' }).click()
-  await page.getByLabel('6-digit code').fill(await otpFor(phone, since))
-  await page.getByRole('button', { name: 'Continue' }).click()
-}
 
 test('worker onboards, admin approves, worker gets access to leads', async ({ browser }) => {
   const workerCtx = await browser.newContext()

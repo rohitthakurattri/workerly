@@ -22,6 +22,18 @@ Rails.application.routes.draw do
       resources :categories, only: %i[index show], param: :slug
       resources :cities, only: :index
 
+      namespace :customer do
+        resources :addresses, only: %i[index create update destroy]
+        resources :service_requests, only: %i[index show create update destroy] do
+          member do
+            post :submit
+            post :cancel
+          end
+          resource :triage, only: :create
+          resources :attachments, only: %i[create destroy]
+        end
+      end
+
       namespace :worker do
         resource :registration, only: :create
         resource :profile, only: %i[show update] do

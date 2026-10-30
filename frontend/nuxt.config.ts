@@ -35,6 +35,10 @@ export default defineNuxtConfig({
         worker: 'http://localhost:3002',
         admin: 'http://localhost:3003',
       },
+      // OpenStreetMap's own tiles are fine for development only (usage policy); production
+      // sets a tile provider via NUXT_PUBLIC_MAP_TILE_URL / NUXT_PUBLIC_MAP_ATTRIBUTION.
+      mapTileUrl: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+      mapAttribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
     },
   },
 
