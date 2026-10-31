@@ -1,6 +1,6 @@
-module Ai
-  # Removes contact details before customer text leaves Workerly. Names and exact addresses are
-  # never sent in the first place; this catches what customers type into the description.
+module Shared
+  # Removes contact details from customer text before it goes to an AI provider or to workers
+  # who haven't been booked (off-platform leakage). Names and exact addresses are never included.
   module Redact
     module_function
 

@@ -7,7 +7,7 @@ import { resolve } from 'node:path'
 const backend = resolve(import.meta.dirname, '../../backend')
 
 export interface Seed {
-  phones: { dual: string, admin: string, logout: string, fresh: string, new_worker: string, customer: string }
+  phones: { dual: string, admin: string, logout: string, fresh: string, new_worker: string, customer: string, pro_near: string, pro_far: string }
   totp_secret: string
   camera_photo: string
 }

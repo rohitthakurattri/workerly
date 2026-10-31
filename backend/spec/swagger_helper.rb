@@ -124,7 +124,7 @@ RSpec.configure do |config|
                           alternatives: { type: :array, items: { "$ref" => "#/components/schemas/category_brief" } } }
           },
           service_request: {
-            type: :object, required: %w[id status answers safety_flag urgency photos missing cancellable created_at],
+            type: :object, required: %w[id status answers safety_flag urgency photos missing cancellable invited_count created_at],
             properties: {
               id: { type: :string }, status: { "$ref" => "#/components/schemas/request_status" },
               description: { type: :string, nullable: true },
@@ -139,6 +139,7 @@ RSpec.configure do |config|
               triage: { allOf: [ { "$ref" => "#/components/schemas/triage" } ], nullable: true },
               missing: { type: :array, items: { type: :string, enum: %w[description category address] } },
               cancellable: { type: :boolean }, cancel_reason: { type: :string, nullable: true },
+              invited_count: { type: :integer }, matched_at: { type: :string, nullable: true },
               created_at: { type: :string }, submitted_at: { type: :string, nullable: true },
               expires_at: { type: :string, nullable: true }, cancelled_at: { type: :string, nullable: true }
             }
@@ -151,6 +152,57 @@ RSpec.configure do |config|
                           locality: { type: :string, nullable: true }, photo_count: { type: :integer },
                           cover: { "$ref" => "#/components/schemas/file" }, created_at: { type: :string },
                           submitted_at: { type: :string, nullable: true }, expires_at: { type: :string, nullable: true } }
+          },
+          lead: {
+            type: :object, required: %w[id status category description answers urgency safety_flag locality city distance_band photos invited_at expires_at],
+            properties: {
+              id: { type: :string }, status: { type: :string, enum: %w[new viewed declined] },
+              category: { "$ref" => "#/components/schemas/category_brief" },
+              description: { type: :string, nullable: true }, ai_summary: { type: :string, nullable: true },
+              answers: { type: :array, items: { type: :object, required: %w[question answer], properties: { question: { type: :string }, answer: { type: :string } } } },
+              urgency: { "$ref" => "#/components/schemas/urgency" }, safety_flag: { type: :boolean },
+              preferred_from: { type: :string, nullable: true }, preferred_to: { type: :string, nullable: true },
+              locality: { type: :string }, city: { type: :string },
+              distance_band: { type: :string, enum: %w[under_1km 1_3km 3_5km 5_10km over_10km] },
+              photos: { type: :array, items: { "$ref" => "#/components/schemas/request_photo" } },
+              invited_at: { type: :string }, expires_at: { type: :string }
+            }
+          },
+          notification: {
+            type: :object, required: %w[id kind title read created_at],
+            properties: { id: { type: :string }, kind: { type: :string }, title: { type: :string }, body: { type: :string, nullable: true },
+                          url: { type: :string, nullable: true }, data: { type: :object }, read: { type: :boolean }, created_at: { type: :string } }
+          },
+          admin_service_request_summary: {
+            type: :object, required: %w[id status category city invited_count submitted_at],
+            properties: { id: { type: :string }, status: { "$ref" => "#/components/schemas/request_status" },
+                          urgency: { "$ref" => "#/components/schemas/urgency" }, invited_count: { type: :integer }, safety_flag: { type: :boolean },
+                          category: { type: :string }, city: { type: :string }, locality: { type: :string, nullable: true },
+                          customer: { type: :object, properties: { name: { type: :string, nullable: true }, phone: { type: :string } } },
+                          submitted_at: { type: :string }, matched_at: { type: :string, nullable: true }, expires_at: { type: :string } }
+          },
+          admin_service_request_detail: {
+            type: :object, required: %w[id status category invitations],
+            properties: {
+              id: { type: :string }, status: { "$ref" => "#/components/schemas/request_status" }, urgency: { "$ref" => "#/components/schemas/urgency" },
+              description: { type: :string, nullable: true }, ai_summary: { type: :string, nullable: true }, safety_flag: { type: :boolean },
+              category_source: { type: :string, nullable: true }, invited_count: { type: :integer }, cancel_reason: { type: :string, nullable: true },
+              answers: { type: :array, items: { type: :object, properties: { question: { type: :string }, answer: { type: :string } } } },
+              address_snapshot: { type: :object, properties: { label: { type: :string, nullable: true }, line1: { type: :string }, line2: { type: :string, nullable: true },
+                                                                landmark: { type: :string, nullable: true }, locality: { type: :string }, pincode: { type: :string } } },
+              category: { type: :string }, city: { type: :string }, location: { "$ref" => "#/components/schemas/lat_lng" },
+              customer: { type: :object, properties: { id: { type: :string }, name: { type: :string, nullable: true }, phone: { type: :string } } },
+              photos: { type: :array, items: { "$ref" => "#/components/schemas/request_photo" } },
+              preferred_from: { type: :string, nullable: true }, preferred_to: { type: :string, nullable: true },
+              submitted_at: { type: :string }, matched_at: { type: :string, nullable: true }, expires_at: { type: :string },
+              cancelled_at: { type: :string, nullable: true },
+              invitations: { type: :array, items: { type: :object, required: %w[rank score distance_m worker_id],
+                properties: { rank: { type: :integer }, score: { type: :number }, distance_m: { type: :integer }, worker_id: { type: :string },
+                              worker_name: { type: :string, nullable: true }, notified_at: { type: :string, nullable: true },
+                              notified_via: { type: :string, nullable: true, enum: [ "push", "sms", "none", nil ] },
+                              viewed_at: { type: :string, nullable: true }, declined_at: { type: :string, nullable: true },
+                              decline_reason: { type: :string, nullable: true } } } }
+            }
           },
           page_meta: { type: :object, properties: { next_cursor: { type: :string, nullable: true } } },
           auth_session: {

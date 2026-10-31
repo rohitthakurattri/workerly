@@ -1,6 +1,6 @@
 module Requests
   # draft -> open. Copies the address so later edits to the address book never move a live request.
-  # Phase 4 hooks matching in here (after commit).
+  # Matching runs in a job once the transaction has committed.
   module Submit
     module_function
 
@@ -22,6 +22,7 @@ module Requests
         request.update!(status: "open", submitted_at: now, expires_at: now + Workerly.config.request_ttl_hours.hours,
                         city: address.city, location: address.location, address_snapshot: address.snapshot)
       end
+      Matching::MatchRequestJob.perform_later(request.id)
       request
     end
   end

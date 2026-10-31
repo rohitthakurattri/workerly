@@ -5,6 +5,8 @@ class ServiceRequest < ApplicationRecord
   # Waiting for or receiving quotes, or booked: counts towards the customer's limit.
   ACTIVE_STATUSES = %w[open quoting booked].freeze
   CANCELLABLE_STATUSES = %w[open quoting].freeze
+  # Workers can see and (Phase 5) quote on these.
+  QUOTABLE_STATUSES = %w[open quoting].freeze
   URGENCIES = %w[asap today this_week flexible].freeze
   MAX_PHOTOS = 6
   MAX_DRAFTS = 5
@@ -19,6 +21,7 @@ class ServiceRequest < ApplicationRecord
   belongs_to :triage_analysis, class_name: "AiAnalysis", optional: true
   has_many :attachments, -> { order(:created_at, :id) }, class_name: "RequestAttachment", dependent: :destroy
   has_many :ai_analyses, as: :analysable, dependent: :restrict_with_error
+  has_many :invitations, -> { order(:rank) }, class_name: "RequestInvitation", dependent: :restrict_with_error
 
   geo_point :location
   validates :status, inclusion: { in: STATUSES }

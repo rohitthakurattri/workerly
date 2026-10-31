@@ -6,6 +6,8 @@ Rails.application.routes.draw do
     mount Rswag::Api::Engine => "/api-docs"
   end
 
+  # Action Cable is mounted at /cable (config.action_cable.mount_path).
+
   namespace :api, defaults: { format: :json } do
     namespace :v1 do
       scope :auth, module: :auth do
@@ -20,6 +22,17 @@ Rails.application.routes.draw do
       resource :me, only: %i[show update], controller: :me
 
       resources :categories, only: %i[index show], param: :slug
+      resources :cable_tickets, only: :create
+      resources :devices, only: :create do
+        collection do
+          get :push_config
+          delete "", action: :destroy
+        end
+      end
+      resources :notifications, only: :index do
+        post :read, on: :member
+        post :read_all, on: :collection
+      end
       resources :cities, only: :index
 
       namespace :customer do
@@ -44,7 +57,9 @@ Rails.application.routes.draw do
         resource :availability, only: :update
         resources :service_areas, only: %i[index create update destroy]
         resources :documents, only: %i[index create destroy]
-        resources :leads, only: %i[index show]
+        resources :leads, only: %i[index show] do
+          post :decline, on: :member
+        end
       end
 
       namespace :admin do
@@ -55,6 +70,7 @@ Rails.application.routes.draw do
             post :reinstate
           end
         end
+        resources :service_requests, only: %i[index show]
         resources :audit_logs, only: :index
         resources :categories, only: %i[index create update]
       end

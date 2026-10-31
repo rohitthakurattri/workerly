@@ -13,6 +13,8 @@ class User < ApplicationRecord
   has_one :worker_profile, dependent: :restrict_with_error
   has_many :addresses, dependent: :restrict_with_error
   has_many :service_requests, foreign_key: :customer_id, inverse_of: :customer, dependent: :restrict_with_error
+  has_many :notifications, dependent: :destroy
+  has_many :device_subscriptions, dependent: :destroy
 
   validates :phone_e164, presence: true, format: { with: Identity::PhoneNumber::E164 }
   validates :status, inclusion: { in: STATUSES }

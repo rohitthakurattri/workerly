@@ -46,6 +46,10 @@ module Workerly
 
     config.active_job.queue_adapter = :sidekiq
 
+    # Action Cable at /cable, only from the Workerly apps.
+    config.action_cable.mount_path = "/cable"
+    config.action_cable.allowed_request_origins = ENV.fetch("APP_ORIGINS", "").split(",").map(&:strip).reject(&:empty?)
+
     # Private media is only ever handed out as service URLs that expire quickly.
     config.active_storage.service_urls_expire_in = 5.minutes
     # Production serves files straight from S3 signed URLs; the Rails blob routes
@@ -54,6 +58,8 @@ module Workerly
     config.time_zone = "UTC"
     config.i18n.available_locales = %i[en hi pa]
     config.i18n.default_locale = :en
+    # Hindi/Punjabi text that isn't translated yet falls back to English instead of "translation missing".
+    config.i18n.fallbacks = [ :en ]
 
     config.generators do |g|
       g.test_framework :rspec

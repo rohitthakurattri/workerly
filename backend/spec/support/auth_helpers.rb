@@ -46,4 +46,5 @@ RSpec.configure do |c|
   c.include AuthHelpers, type: :request
   c.include AuthHelpers, type: :service
   c.include AuthHelpers, type: :model
+  c.include AuthHelpers, type: :job
 end

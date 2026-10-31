@@ -1,5 +1,5 @@
 <script setup lang="ts">
-const { canViewWorkers, canViewAudit } = useStaff()
+const { canViewWorkers, canViewAudit, canViewRequests } = useStaff()
 const { t } = useI18n()
 </script>
 
@@ -25,6 +25,13 @@ const { t } = useI18n()
           class="admin-tab"
         >
           {{ t('admin.workers') }}
+        </NuxtLink>
+        <NuxtLink
+          v-if="canViewRequests"
+          to="/requests"
+          class="admin-tab"
+        >
+          {{ t('admin.requests') }}
         </NuxtLink>
         <NuxtLink
           v-if="canViewAudit"

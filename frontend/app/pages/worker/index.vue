@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { onBeforeUnmount, onMounted, ref } from 'vue'
 import { useAuthStore } from '~/stores/auth'
 import { ApiError } from '~/utils/api-error'
 
@@ -9,13 +9,13 @@ definePageMeta({ middleware: ['worker-profile'] })
 const auth = useAuthStore()
 const { profile, register, setAvailable } = useWorkerProfile()
 const toast = useToast()
-const api = useApi()
+const { leads, load: loadLeads, live } = useLeads()
 const { t } = useI18n()
+let stopLive = () => {}
 
 const name = ref(auth.user?.name ?? '')
 const registering = ref(false)
 const registerError = ref<string | null>(null)
-const leads = ref<unknown[] | null>(null)
 const toggling = ref(false)
 
 async function becomeWorker() {
@@ -49,9 +49,13 @@ async function toggleAvailable() {
   }
 }
 
+// Leads arrive live over the WebSocket; the list is refetched on every (re)connect.
 onMounted(async () => {
-  if (auth.activeRole === 'worker') leads.value = (await api<{ data: unknown[] }>('/worker/leads')).data
+  if (auth.activeRole !== 'worker' || profile.value?.verification_status !== 'approved' || profile.value.suspended) return
+  await loadLeads()
+  stopLive = live(lead => toast.show(t('leads.arrived', { category: lead.category.name, locality: lead.locality }), 'info'))
 })
+onBeforeUnmount(() => stopLive())
 </script>
 
 <template>
@@ -99,9 +103,20 @@ onMounted(async () => {
         <UiEmptyState
           v-else-if="!leads.length"
           :title="t('worker.noLeads')"
-          :description="t('worker.noLeadsApproved')"
+          :description="profile.available ? t('worker.noLeadsApproved') : t('leads.offDuty')"
         />
+        <div
+          v-else
+          class="flex flex-col gap-2"
+        >
+          <WorkerLeadCard
+            v-for="lead in leads"
+            :key="lead.id"
+            :lead="lead"
+          />
+        </div>
       </UiCard>
+      <WorkerJobAlerts />
     </template>
 
     <UiCard v-else>

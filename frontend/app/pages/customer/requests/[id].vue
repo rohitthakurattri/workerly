@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { onBeforeUnmount, onMounted, ref } from 'vue'
 import { ApiError } from '~/utils/api-error'
 
 definePageMeta({ middleware: ['role'], roles: ['customer'] })
@@ -15,10 +15,22 @@ const cancelling = ref(false)
 const confirmCancel = ref(false)
 const reason = ref('')
 
+// Matching runs in the background right after submit; poll briefly until it has run.
+let poll: ReturnType<typeof setTimeout> | undefined
+function pollMatching(tries = 10) {
+  if (!request.value || request.value.matched_at || request.value.status !== 'open' || tries <= 0) return
+  poll = setTimeout(async () => {
+    await load(request.value!.id)
+    pollMatching(tries - 1)
+  }, 2000)
+}
+onBeforeUnmount(() => clearTimeout(poll))
+
 onMounted(async () => {
   try {
     const r = await load(String(route.params.id))
     if (r.status === 'draft') return navigateTo({ path: '/requests/new', query: { id: r.id } }, { replace: true })
+    pollMatching()
   }
   catch (e) {
     if (ApiError.from(e).status === 404) notFound.value = true
@@ -73,6 +85,21 @@ const fmt = (iso?: string | null) => iso ? new Intl.DateTimeFormat(locale.value,
       <UiCard v-if="request.status === 'open' || request.status === 'quoting'">
         <p class="font-medium">
           {{ t('requests.waitingTitle') }}
+        </p>
+        <p
+          class="mt-1 text-sm"
+          :class="request.matched_at && !request.invited_count ? 'text-warning' : 'text-ink-muted'"
+          data-testid="match-status"
+        >
+          <template v-if="!request.matched_at">
+            {{ t('requests.finding') }}
+          </template>
+          <template v-else-if="request.invited_count">
+            {{ t('requests.sentTo', { count: request.invited_count }, request.invited_count) }}
+          </template>
+          <template v-else>
+            {{ t('requests.nobodyYet') }}
+          </template>
         </p>
         <p class="mt-1 text-sm text-ink-muted">
           {{ t('requests.waitingBody', { time: fmt(request.expires_at) }) }}

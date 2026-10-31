@@ -145,7 +145,35 @@
     "target": "Target",
     "reason": "Reason",
     "workerTarget": "Worker profile",
-    "noAudit": "Nothing logged yet"
+    "noAudit": "Nothing logged yet",
+    "requests": "Requests",
+    "requestTabs": {
+      "attention": "Needs attention",
+      "open": "Open",
+      "cancelled": "Cancelled",
+      "expired": "Expired",
+      "all": "All"
+    },
+    "area": "Area",
+    "customer": "Customer",
+    "invited": "Invited",
+    "noRequests": "No requests here",
+    "safetyFlag": "Possible danger",
+    "keptSuggestion": "customer kept the AI suggestion",
+    "customerPicked": "customer picked the service",
+    "expires": "Expires",
+    "invitations": "Invited workers ({count})",
+    "nobodyMatched": "Nobody matched: no available, verified worker with this skill covers this location.",
+    "notMatchedYet": "Matching has not run yet.",
+    "worker": "Worker",
+    "distance": "Distance",
+    "score": "Score",
+    "notified": "Notified by",
+    "viewed": "Viewed",
+    "declined": "Declined",
+    "needsAttention": "Requests needing attention",
+    "needsAttentionHint": "Open with nobody invited, or no quotes after 30 minutes.",
+    "openRequests": "Open requests"
   },
   "profile": {
     "title": "Your profile",
@@ -325,7 +353,10 @@
     "cancelReason": "Reason (optional)",
     "keep": "Keep it",
     "cancelled": "Request cancelled.",
-    "untitled": "New request"
+    "untitled": "New request",
+    "finding": "Finding workers near you…",
+    "sentTo": "Sent to {count} nearby worker. | Sent to {count} nearby workers.",
+    "nobodyYet": "No workers are free nearby right now. Our team has been alerted and will help."
   },
   "addresses": {
     "title": "Addresses",
@@ -375,5 +406,34 @@
     "fulfilled": "Done",
     "expired": "Expired",
     "cancelled": "Cancelled"
+  },
+  "leads": {
+    "new": "New",
+    "arrived": "New job: {category} in {locality}",
+    "offDuty": "You're set to unavailable. Switch it on to receive jobs.",
+    "alerts": "Job alerts",
+    "alertsOn": "You'll get a notification on this phone when a job comes in.",
+    "alertsOff": "Get a notification on this phone when a job comes in, even when the app is closed. Otherwise we send an SMS.",
+    "alertsBlocked": "Notifications are blocked for this site. Allow them in your browser settings. We send an SMS meanwhile.",
+    "turnOn": "Turn on",
+    "turnOff": "Turn off",
+    "gone": "This job is no longer available",
+    "goneHint": "The customer may have cancelled it, or it has expired.",
+    "safety": "The customer reported something that may be dangerous. Take care and check before you start.",
+    "details": "Details from the customer",
+    "privacy": "You'll see the exact address and phone number only if the customer books you.",
+    "openUntil": "Open until {time}.",
+    "sendQuote": "Send quote (coming soon)",
+    "decline": "Not interested",
+    "declineTitle": "Hide this job?",
+    "declineReason": "Reason (optional)",
+    "declined": "Job hidden."
+  },
+  "distance": {
+    "under_1km": "under 1 km",
+    "1_3km": "1–3 km",
+    "3_5km": "3–5 km",
+    "5_10km": "5–10 km",
+    "over_10km": "over 10 km"
   }
 }

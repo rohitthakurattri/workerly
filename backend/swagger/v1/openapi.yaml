@@ -515,6 +515,7 @@ components:
       - photos
       - missing
       - cancellable
+      - invited_count
       - created_at
       properties:
         id:
@@ -584,6 +585,11 @@ components:
         cancel_reason:
           type: string
           nullable: true
+        invited_count:
+          type: integer
+        matched_at:
+          type: string
+          nullable: true
         created_at:
           type: string
         submitted_at:
@@ -632,6 +638,284 @@ components:
         expires_at:
           type: string
           nullable: true
+    lead:
+      type: object
+      required:
+      - id
+      - status
+      - category
+      - description
+      - answers
+      - urgency
+      - safety_flag
+      - locality
+      - city
+      - distance_band
+      - photos
+      - invited_at
+      - expires_at
+      properties:
+        id:
+          type: string
+        status:
+          type: string
+          enum:
+          - new
+          - viewed
+          - declined
+        category:
+          "$ref": "#/components/schemas/category_brief"
+        description:
+          type: string
+          nullable: true
+        ai_summary:
+          type: string
+          nullable: true
+        answers:
+          type: array
+          items:
+            type: object
+            required:
+            - question
+            - answer
+            properties:
+              question:
+                type: string
+              answer:
+                type: string
+        urgency:
+          "$ref": "#/components/schemas/urgency"
+        safety_flag:
+          type: boolean
+        preferred_from:
+          type: string
+          nullable: true
+        preferred_to:
+          type: string
+          nullable: true
+        locality:
+          type: string
+        city:
+          type: string
+        distance_band:
+          type: string
+          enum:
+          - under_1km
+          - 1_3km
+          - 3_5km
+          - 5_10km
+          - over_10km
+        photos:
+          type: array
+          items:
+            "$ref": "#/components/schemas/request_photo"
+        invited_at:
+          type: string
+        expires_at:
+          type: string
+    notification:
+      type: object
+      required:
+      - id
+      - kind
+      - title
+      - read
+      - created_at
+      properties:
+        id:
+          type: string
+        kind:
+          type: string
+        title:
+          type: string
+        body:
+          type: string
+          nullable: true
+        url:
+          type: string
+          nullable: true
+        data:
+          type: object
+        read:
+          type: boolean
+        created_at:
+          type: string
+    admin_service_request_summary:
+      type: object
+      required:
+      - id
+      - status
+      - category
+      - city
+      - invited_count
+      - submitted_at
+      properties:
+        id:
+          type: string
+        status:
+          "$ref": "#/components/schemas/request_status"
+        urgency:
+          "$ref": "#/components/schemas/urgency"
+        invited_count:
+          type: integer
+        safety_flag:
+          type: boolean
+        category:
+          type: string
+        city:
+          type: string
+        locality:
+          type: string
+          nullable: true
+        customer:
+          type: object
+          properties:
+            name:
+              type: string
+              nullable: true
+            phone:
+              type: string
+        submitted_at:
+          type: string
+        matched_at:
+          type: string
+          nullable: true
+        expires_at:
+          type: string
+    admin_service_request_detail:
+      type: object
+      required:
+      - id
+      - status
+      - category
+      - invitations
+      properties:
+        id:
+          type: string
+        status:
+          "$ref": "#/components/schemas/request_status"
+        urgency:
+          "$ref": "#/components/schemas/urgency"
+        description:
+          type: string
+          nullable: true
+        ai_summary:
+          type: string
+          nullable: true
+        safety_flag:
+          type: boolean
+        category_source:
+          type: string
+          nullable: true
+        invited_count:
+          type: integer
+        cancel_reason:
+          type: string
+          nullable: true
+        answers:
+          type: array
+          items:
+            type: object
+            properties:
+              question:
+                type: string
+              answer:
+                type: string
+        address_snapshot:
+          type: object
+          properties:
+            label:
+              type: string
+              nullable: true
+            line1:
+              type: string
+            line2:
+              type: string
+              nullable: true
+            landmark:
+              type: string
+              nullable: true
+            locality:
+              type: string
+            pincode:
+              type: string
+        category:
+          type: string
+        city:
+          type: string
+        location:
+          "$ref": "#/components/schemas/lat_lng"
+        customer:
+          type: object
+          properties:
+            id:
+              type: string
+            name:
+              type: string
+              nullable: true
+            phone:
+              type: string
+        photos:
+          type: array
+          items:
+            "$ref": "#/components/schemas/request_photo"
+        preferred_from:
+          type: string
+          nullable: true
+        preferred_to:
+          type: string
+          nullable: true
+        submitted_at:
+          type: string
+        matched_at:
+          type: string
+          nullable: true
+        expires_at:
+          type: string
+        cancelled_at:
+          type: string
+          nullable: true
+        invitations:
+          type: array
+          items:
+            type: object
+            required:
+            - rank
+            - score
+            - distance_m
+            - worker_id
+            properties:
+              rank:
+                type: integer
+              score:
+                type: number
+              distance_m:
+                type: integer
+              worker_id:
+                type: string
+              worker_name:
+                type: string
+                nullable: true
+              notified_at:
+                type: string
+                nullable: true
+              notified_via:
+                type: string
+                nullable: true
+                enum:
+                - push
+                - sms
+                - none
+                -
+              viewed_at:
+                type: string
+                nullable: true
+              declined_at:
+                type: string
+                nullable: true
+              decline_reason:
+                type: string
+                nullable: true
     page_meta:
       type: object
       properties:
@@ -1221,6 +1505,228 @@ paths:
           description: suggestion
         '503':
           description: 'AI off or failing: the customer picks the category'
+  "/api/v1/worker/leads":
+    get:
+      summary: Leads (approved workers only)
+      tags:
+      - Worker leads
+      security:
+      - bearer: []
+      parameters:
+      - name: Authorization
+        in: header
+        schema:
+          type: string
+      responses:
+        '200':
+          description: ok
+        '403':
+          description: not verified
+  "/api/v1/worker/leads/{id}":
+    parameters:
+    - name: id
+      in: path
+      schema:
+        type: string
+      description: The request's id
+      required: true
+    get:
+      summary: One lead (marks it viewed)
+      tags:
+      - Worker leads
+      security:
+      - bearer: []
+      parameters:
+      - name: Authorization
+        in: header
+        schema:
+          type: string
+      responses:
+        '200':
+          description: ok
+        '404':
+          description: not invited, declined or closed
+  "/api/v1/worker/leads/{id}/decline":
+    parameters:
+    - name: id
+      in: path
+      schema:
+        type: string
+      required: true
+    post:
+      summary: Not interested (hides the lead)
+      tags:
+      - Worker leads
+      security:
+      - bearer: []
+      parameters:
+      - name: Authorization
+        in: header
+        schema:
+          type: string
+      responses:
+        '204':
+          description: declined
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                reason:
+                  type: string
+  "/api/v1/cable_tickets":
+    post:
+      summary: One-time ticket for the WebSocket (wss …/cable?ticket=…, valid 60 s)
+      tags:
+      - Realtime
+      security:
+      - bearer: []
+      parameters:
+      - name: Authorization
+        in: header
+        schema:
+          type: string
+      responses:
+        '201':
+          description: ticket
+  "/api/v1/devices/push_config":
+    get:
+      summary: Web push settings for the apps
+      tags:
+      - Notifications
+      security:
+      - bearer: []
+      parameters:
+      - name: Authorization
+        in: header
+        schema:
+          type: string
+      responses:
+        '200':
+          description: ok
+  "/api/v1/devices":
+    post:
+      summary: Save this browser's push subscription for the active app
+      tags:
+      - Notifications
+      security:
+      - bearer: []
+      parameters:
+      - name: Authorization
+        in: header
+        schema:
+          type: string
+      responses:
+        '201':
+          description: saved
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - endpoint
+              - keys
+              properties:
+                endpoint:
+                  type: string
+                keys:
+                  type: object
+                  properties:
+                    p256dh:
+                      type: string
+                    auth:
+                      type: string
+    delete:
+      summary: Remove this browser's subscription (logout, alerts off)
+      tags:
+      - Notifications
+      security:
+      - bearer: []
+      parameters:
+      - name: Authorization
+        in: header
+        schema:
+          type: string
+      responses:
+        '204':
+          description: removed
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - endpoint
+              properties:
+                endpoint:
+                  type: string
+  "/api/v1/notifications":
+    get:
+      summary: In-app notifications (newest first; meta.unread)
+      tags:
+      - Notifications
+      security:
+      - bearer: []
+      parameters:
+      - name: Authorization
+        in: header
+        schema:
+          type: string
+      responses:
+        '200':
+          description: ok
+  "/api/v1/admin/service_requests":
+    get:
+      summary: Submitted requests; attention = open with nobody invited or no quotes
+        after 30 min
+      tags:
+      - Admin requests
+      security:
+      - bearer: []
+      parameters:
+      - name: Authorization
+        in: header
+        schema:
+          type: string
+      - name: filter[status]
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: filter[attention]
+        in: query
+        required: false
+        schema:
+          type: string
+          enum:
+          - 'true'
+      responses:
+        '200':
+          description: ok
+  "/api/v1/admin/service_requests/{id}":
+    parameters:
+    - name: id
+      in: path
+      schema:
+        type: string
+      required: true
+    get:
+      summary: One request with its invitations (rank, score, distance, notified,
+        viewed, declined)
+      tags:
+      - Admin requests
+      security:
+      - bearer: []
+      parameters:
+      - name: Authorization
+        in: header
+        schema:
+          type: string
+      responses:
+        '200':
+          description: ok
   "/api/v1/categories":
     get:
       summary: Active service categories (tree)
@@ -1418,23 +1924,6 @@ paths:
           description: submitted
         '422':
           description: incomplete (details.missing lists what's left)
-  "/api/v1/worker/leads":
-    get:
-      summary: Leads (approved workers only)
-      tags:
-      - Worker leads
-      security:
-      - bearer: []
-      parameters:
-      - name: Authorization
-        in: header
-        schema:
-          type: string
-      responses:
-        '200':
-          description: ok
-        '403':
-          description: not verified
   "/api/v1/admin/workers":
     get:
       summary: Worker list / review queue

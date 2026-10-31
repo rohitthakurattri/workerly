@@ -21,7 +21,7 @@ bundle install
 cp .env.example .env                      # then fill the secrets: bin/rails secret / openssl rand -hex 32
 bin/rails db:prepare
 bin/rails server -p 3000                  # API
-bundle exec sidekiq -C config/sidekiq.yml # jobs (OTP SMS go through here)
+bundle exec sidekiq -C config/sidekiq.yml # jobs: OTP SMS, matching, notifications, scheduled expiry
 tail -f log/fake_sms.log                  # your "phone": OTP codes appear here in development
 
 cd ../frontend

@@ -43,9 +43,12 @@ export function useAuth() {
 
   async function logout() {
     try {
+      // Stop job alerts on this browser before the session (needed to unregister) ends.
+      if (import.meta.client) await usePush().disable().catch(() => {})
       await api('/auth/session', { method: 'DELETE' })
     }
     finally {
+      closeCable()
       auth.clear()
       // Shared devices: drop anything the service worker may have cached.
       if (import.meta.client && 'caches' in window) {

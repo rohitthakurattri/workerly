@@ -13,6 +13,8 @@ class ServiceRequestResource
   attribute(:missing) { |r| r.draft? ? r.missing : [] }
   attribute(:cancellable) { |r| r.cancellable? }
   attribute(:cancel_reason) { |r| r.cancel_reason }
+  attribute(:invited_count) { |r| r.invited_count }
+  attribute(:matched_at) { |r| r.matched_at&.iso8601 }
   attribute(:created_at) { |r| r.created_at.iso8601 }
   attribute(:submitted_at) { |r| r.submitted_at&.iso8601 }
   attribute(:expires_at) { |r| r.expires_at&.iso8601 }

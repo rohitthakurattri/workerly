@@ -11,5 +11,6 @@ export function useStaff() {
     canDecide: is('admin', 'verifier'),
     canSuspend: is('admin', 'support'),
     canViewAudit: is('admin'),
+    canViewRequests: is('admin', 'support'),
   }
 }

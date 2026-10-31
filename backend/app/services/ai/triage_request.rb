@@ -17,7 +17,7 @@ module Ai
     def call(request:, user:)
       raise ApplicationError.new(:ai_unavailable, status: :service_unavailable) unless Workerly.config.ai_triage_enabled
 
-      description = Redact.call(request.description)
+      description = Shared::Redact.call(request.description)
       photos = request.photos.first(MAX_IMAGES)
       raise ApplicationError.new(:nothing_to_analyse) if description.length < ServiceRequest::DESCRIPTION_MIN && photos.empty?
 

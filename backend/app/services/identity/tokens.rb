@@ -3,6 +3,7 @@ module Identity
   module Tokens
     ACCESS_TTL = 15.minutes
     MFA_TTL = 5.minutes
+    CABLE_TTL = 1.minute
     ISSUER = "workerly-api"
     ALGORITHM = "HS256"
 
@@ -11,6 +12,11 @@ module Identity
     def access_token(session:, role:)
       encode(typ: "access", sub: session.user.public_id, sid: session.public_id,
              scope: session.scope, role: role.to_s, ttl: ACCESS_TTL)
+    end
+
+    # One-time ticket for opening the Action Cable socket (browsers can't send headers on WebSockets).
+    def cable_ticket(session:, role:)
+      encode(typ: "cable", sub: session.user.public_id, sid: session.public_id, role: role.to_s, ttl: CABLE_TTL)
     end
 
     def mfa_token(user:)

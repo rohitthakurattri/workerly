@@ -1,9 +1,10 @@
 # Headless: authorize :lead, :index?
-# Only approved, unsuspended workers see leads. Phase 4 also limits them to
-# requests they were invited to (request_invitations).
+# Only approved, unsuspended workers see leads, and LeadsController only looks
+# through their own request_invitations.
 class LeadPolicy < ApplicationPolicy
   def index? = can_receive_leads?
   def show? = can_receive_leads?
+  def decline? = can_receive_leads?
 
   private
 

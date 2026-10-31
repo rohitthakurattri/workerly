@@ -11,6 +11,7 @@ module Requests
 
         request.update!(status: "cancelled", cancelled_at: Time.current, cancel_reason: reason.to_s.strip.presence)
       end
+      Matching::CloseLeads.call(request)
       request
     end
   end

@@ -1,0 +1,9 @@
+# sidekiq-cron, loaded by config/initializers/sidekiq.rb in the Sidekiq server process.
+expire_requests:
+  cron: "*/5 * * * *"
+  class: "Requests::ExpireJob"
+  queue: default
+purge_stale_drafts:
+  cron: "30 3 * * *"     # 03:30 UTC
+  class: "Requests::PurgeStaleDraftsJob"
+  queue: low

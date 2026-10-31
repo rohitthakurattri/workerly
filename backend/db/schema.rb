@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_30_120200) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_30_130100) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "citext"
   enable_extension "pg_catalog.plpgsql"
@@ -112,7 +112,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_30_120200) do
     t.index ["use_case", "input_hash", "created_at"], name: "index_ai_analyses_on_use_case_and_input_hash_and_created_at"
     t.index ["user_id", "use_case", "created_at"], name: "index_ai_analyses_on_user_id_and_use_case_and_created_at"
     t.check_constraint "confidence IS NULL OR confidence >= 0::numeric AND confidence <= 1::numeric", name: "ai_analyses_confidence_check"
-    t.check_constraint "status::text = ANY (ARRAY['succeeded'::character varying, 'failed'::character varying]::text[])", name: "ai_analyses_status_check"
+    t.check_constraint "status::text = ANY (ARRAY['succeeded'::character varying::text, 'failed'::character varying::text])", name: "ai_analyses_status_check"
   end
 
   create_table "cities", force: :cascade do |t|
@@ -140,6 +140,43 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_30_120200) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["iso2"], name: "index_countries_on_iso2", unique: true
+  end
+
+  create_table "device_subscriptions", force: :cascade do |t|
+    t.uuid "public_id", null: false
+    t.bigint "user_id", null: false
+    t.string "platform", default: "webpush", null: false
+    t.string "app", null: false
+    t.text "endpoint", null: false
+    t.string "p256dh", null: false
+    t.string "auth", null: false
+    t.string "user_agent"
+    t.datetime "last_seen_at"
+    t.datetime "failed_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["endpoint"], name: "index_device_subscriptions_on_endpoint", unique: true
+    t.index ["public_id"], name: "index_device_subscriptions_on_public_id", unique: true
+    t.index ["user_id"], name: "index_device_subscriptions_on_user_id"
+    t.check_constraint "app::text = ANY (ARRAY['customer'::character varying, 'worker'::character varying]::text[])", name: "device_subscriptions_app_check"
+    t.check_constraint "platform::text = 'webpush'::text", name: "device_subscriptions_platform_check"
+  end
+
+  create_table "notifications", force: :cascade do |t|
+    t.uuid "public_id", null: false
+    t.bigint "user_id", null: false
+    t.string "kind", null: false
+    t.string "title", null: false
+    t.string "body"
+    t.string "url"
+    t.jsonb "data", default: {}, null: false
+    t.string "channels", default: [], null: false, array: true
+    t.datetime "read_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["public_id"], name: "index_notifications_on_public_id", unique: true
+    t.index ["user_id", "created_at"], name: "index_notifications_on_user_id_and_created_at"
+    t.index ["user_id"], name: "index_notifications_unread", where: "(read_at IS NULL)"
   end
 
   create_table "otp_challenges", force: :cascade do |t|
@@ -177,7 +214,29 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_30_120200) do
     t.datetime "updated_at", null: false
     t.index ["public_id"], name: "index_request_attachments_on_public_id", unique: true
     t.index ["service_request_id"], name: "index_request_attachments_on_service_request_id"
-    t.check_constraint "kind::text = ANY (ARRAY['image'::character varying, 'audio'::character varying, 'video'::character varying]::text[])", name: "request_attachments_kind_check"
+    t.check_constraint "kind::text = ANY (ARRAY['image'::character varying::text, 'audio'::character varying::text, 'video'::character varying::text])", name: "request_attachments_kind_check"
+  end
+
+  create_table "request_invitations", force: :cascade do |t|
+    t.uuid "public_id", null: false
+    t.bigint "service_request_id", null: false
+    t.bigint "worker_profile_id", null: false
+    t.integer "rank", null: false
+    t.decimal "rank_score", precision: 6, scale: 4, null: false
+    t.integer "distance_m", null: false
+    t.datetime "notified_at"
+    t.string "notified_via"
+    t.datetime "viewed_at"
+    t.datetime "declined_at"
+    t.string "decline_reason"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["public_id"], name: "index_request_invitations_on_public_id", unique: true
+    t.index ["service_request_id", "worker_profile_id"], name: "idx_on_service_request_id_worker_profile_id_1b4062c7a1", unique: true
+    t.index ["worker_profile_id", "created_at"], name: "index_request_invitations_on_worker_profile_id_and_created_at"
+    t.check_constraint "distance_m >= 0", name: "request_invitations_distance_check"
+    t.check_constraint "notified_via IS NULL OR (notified_via::text = ANY (ARRAY['push'::character varying, 'sms'::character varying, 'none'::character varying]::text[]))", name: "request_invitations_notified_via_check"
+    t.check_constraint "rank > 0", name: "request_invitations_rank_check"
   end
 
   create_table "service_categories", force: :cascade do |t|
@@ -222,18 +281,20 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_30_120200) do
     t.string "cancel_reason"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.datetime "matched_at"
+    t.integer "invited_count", default: 0, null: false
     t.index ["address_id"], name: "index_service_requests_on_address_id"
     t.index ["customer_id", "created_at"], name: "index_service_requests_on_customer_id_and_created_at"
     t.index ["location"], name: "index_service_requests_on_location", using: :gist
     t.index ["public_id"], name: "index_service_requests_on_public_id", unique: true
     t.index ["status", "expires_at"], name: "index_service_requests_on_status_and_expires_at"
     t.index ["status", "service_category_id"], name: "index_service_requests_on_status_and_service_category_id"
-    t.check_constraint "category_source IS NULL OR (category_source::text = ANY (ARRAY['ai'::character varying, 'customer'::character varying]::text[]))", name: "service_requests_category_source_check"
+    t.check_constraint "category_source IS NULL OR (category_source::text = ANY (ARRAY['ai'::character varying::text, 'customer'::character varying::text]))", name: "service_requests_category_source_check"
     t.check_constraint "preferred_from IS NULL OR preferred_to IS NULL OR preferred_to > preferred_from", name: "service_requests_window_check"
     t.check_constraint "status::text <> 'cancelled'::text OR cancelled_at IS NOT NULL", name: "service_requests_cancelled_check"
     t.check_constraint "status::text = 'draft'::text OR service_category_id IS NOT NULL AND address_id IS NOT NULL AND city_id IS NOT NULL AND location IS NOT NULL AND address_snapshot IS NOT NULL AND submitted_at IS NOT NULL AND expires_at IS NOT NULL", name: "service_requests_submitted_complete_check"
-    t.check_constraint "status::text = ANY (ARRAY['draft'::character varying, 'open'::character varying, 'quoting'::character varying, 'booked'::character varying, 'fulfilled'::character varying, 'expired'::character varying, 'cancelled'::character varying]::text[])", name: "service_requests_status_check"
-    t.check_constraint "urgency::text = ANY (ARRAY['asap'::character varying, 'today'::character varying, 'this_week'::character varying, 'flexible'::character varying]::text[])", name: "service_requests_urgency_check"
+    t.check_constraint "status::text = ANY (ARRAY['draft'::character varying::text, 'open'::character varying::text, 'quoting'::character varying::text, 'booked'::character varying::text, 'fulfilled'::character varying::text, 'expired'::character varying::text, 'cancelled'::character varying::text])", name: "service_requests_status_check"
+    t.check_constraint "urgency::text = ANY (ARRAY['asap'::character varying::text, 'today'::character varying::text, 'this_week'::character varying::text, 'flexible'::character varying::text])", name: "service_requests_urgency_check"
   end
 
   create_table "states", force: :cascade do |t|
@@ -392,8 +453,12 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_30_120200) do
   add_foreign_key "ai_analyses", "service_categories", column: "suggested_category_id"
   add_foreign_key "ai_analyses", "users"
   add_foreign_key "cities", "states"
+  add_foreign_key "device_subscriptions", "users"
+  add_foreign_key "notifications", "users"
   add_foreign_key "refresh_tokens", "user_sessions"
   add_foreign_key "request_attachments", "service_requests"
+  add_foreign_key "request_invitations", "service_requests"
+  add_foreign_key "request_invitations", "worker_profiles"
   add_foreign_key "service_categories", "service_categories", column: "parent_id"
   add_foreign_key "service_requests", "addresses"
   add_foreign_key "service_requests", "ai_analyses", column: "triage_analysis_id"

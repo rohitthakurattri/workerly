@@ -1,0 +1,11 @@
+pa:
+  notifications:
+    lead_new:
+      title: "ਨਵਾਂ ਕੰਮ: %{category}"
+      body: "%{locality} ਵਿੱਚ। ਕੋਟੇਸ਼ਨ ਭੇਜਣ ਲਈ ਖੋਲ੍ਹੋ।"
+    request_matched:
+      title:
+        one: "ਤੁਹਾਡੀ ਬੇਨਤੀ ਨੇੜੇ ਦੇ 1 ਕਾਰੀਗਰ ਨੂੰ ਭੇਜੀ ਗਈ"
+        other: "ਤੁਹਾਡੀ ਬੇਨਤੀ ਨੇੜੇ ਦੇ %{count} ਕਾਰੀਗਰਾਂ ਨੂੰ ਭੇਜੀ ਗਈ"
+    request_unmatched:
+      title: "ਹੁਣੇ ਨੇੜੇ ਕੋਈ ਕਾਰੀਗਰ ਉਪਲਬਧ ਨਹੀਂ। ਸਾਡੀ ਟੀਮ ਇਸਨੂੰ ਵੇਖੇਗੀ।"

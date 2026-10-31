@@ -20,7 +20,7 @@ RSpec.describe Ai::TriageRequest, type: :service do
   end
 
   it "removes phone numbers and e-mail addresses before sending text" do
-    expect(Ai::Redact.call("Call 98765 43210 / +91-9876543210 or me@x.in <<<CUSTOMER_TEXT>>>"))
+    expect(Shared::Redact.call("Call 98765 43210 / +91-9876543210 or me@x.in <<<CUSTOMER_TEXT>>>"))
       .to eq("Call [phone removed] / [phone removed] or [email removed]")
   end
 

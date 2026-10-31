@@ -6,11 +6,16 @@ import type { AdminWorkerSummary } from '~/types/models'
 definePageMeta({ middleware: ['role'], roles: ['admin', 'finance', 'support', 'verifier'] })
 const auth = useAuthStore()
 const api = useApi()
-const { canViewWorkers } = useStaff()
+const { canViewWorkers, canViewRequests } = useStaff()
 const { t } = useI18n()
 const waiting = ref<number | null>(null)
+const attention = ref<number | null>(null)
 
 onMounted(async () => {
+  if (canViewRequests.value) {
+    const res = await api<{ meta: { attention_count: number } }>('/admin/service_requests', { query: { 'filter[attention]': 'true', 'limit': 1 } })
+    attention.value = res.meta.attention_count
+  }
   if (!canViewWorkers.value) return
   const res = await api<{ data: AdminWorkerSummary[], meta: { next_cursor: string | null } }>('/admin/workers', { query: { 'filter[status]': 'pending_review', 'limit': 100 } })
   waiting.value = res.data.length
@@ -45,7 +50,27 @@ onMounted(async () => {
           {{ t('admin.openQueue') }}
         </NuxtLink>
       </UiCard>
-      <UiCard v-else>
+      <UiCard v-if="canViewRequests">
+        <template #title>
+          {{ t('admin.needsAttention') }}
+        </template>
+        <p
+          class="text-3xl font-bold tabular-nums"
+          :class="{ 'text-danger': !!attention }"
+        >
+          {{ attention ?? '–' }}
+        </p>
+        <p class="mb-3 text-sm text-ink-muted">
+          {{ t('admin.needsAttentionHint') }}
+        </p>
+        <NuxtLink
+          to="/requests?tab=attention"
+          class="font-medium text-brand-700 underline"
+        >
+          {{ t('admin.openRequests') }}
+        </NuxtLink>
+      </UiCard>
+      <UiCard v-if="!canViewWorkers && !canViewRequests">
         <UiEmptyState
           :title="t('admin.emptyTitle')"
           :description="t('admin.emptyBody')"

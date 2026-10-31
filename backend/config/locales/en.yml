@@ -63,3 +63,14 @@ en:
     nothing_to_analyse: "Describe the problem or add a photo first."
     ai_unavailable: "Suggestions are not available right now. Please choose the service yourself."
     ai_budget_exceeded: "You've used today's suggestions. Please choose the service yourself."
+  notifications:
+    lead_new:
+      title: "New job: %{category}"
+      body: "In %{locality}. Open it to send a quote."
+      sms: "New Workerly job near you: %{category} in %{locality}. Open the Workerly Pro app to see it."
+    request_matched:
+      title:
+        one: "Your request was sent to 1 nearby worker"
+        other: "Your request was sent to %{count} nearby workers"
+    request_unmatched:
+      title: "No workers are free nearby right now. Our team will look into it."

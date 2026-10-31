@@ -21,6 +21,23 @@ FactoryBot.define do
       after(:create) { |p| p.update!(verification_status: "pending_review", submitted_at: Time.current) }
     end
 
+    # An approved, available worker with one skill and one service area (defaults: plumber, 5 km
+    # around Mohali Sector 70).
+    trait :matchable do
+      transient do
+        lat { 30.70 }
+        lng { 76.72 }
+        radius_m { 5000 }
+        category { nil }
+      end
+      after(:create) do |p, ev|
+        p.photo.attach(Rack::Test::UploadedFile.new(Rails.root.join("spec/fixtures/files/photo.png"), "image/png"))
+        p.worker_skills.create!(service_category: ev.category || create(:plumber))
+        p.service_areas.create!(city: create(:mohali), center: GeoPoint.point(lat: ev.lat, lng: ev.lng), radius_m: ev.radius_m)
+        p.update!(verification_status: "approved", submitted_at: 2.days.ago, approved_at: 1.day.ago, available: true)
+      end
+    end
+
     trait :approved do
       complete
       after(:create) do |p|

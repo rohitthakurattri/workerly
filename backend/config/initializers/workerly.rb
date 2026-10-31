@@ -10,7 +10,8 @@ module Workerly
 
   Config = Struct.new(:jwt_secret, :otp_pepper, :token_pepper, :sms_adapter, :secure_cookies,
                       :ai_adapter, :ai_triage_enabled, :ai_triage_model, :ai_user_daily_limit, :ai_global_daily_limit,
-                      :request_ttl_hours, keyword_init: true)
+                      :request_ttl_hours, :match_fanout, :max_quotes_per_request, :lead_sms_fallback,
+                      :vapid_public_key, :vapid_private_key, :vapid_subject, keyword_init: true)
 
   def self.config
     @config ||= Config.new(
@@ -26,7 +27,16 @@ module Workerly
       ai_user_daily_limit: ENV.fetch("AI_USER_DAILY_LIMIT", "20").to_i,
       ai_global_daily_limit: ENV.fetch("AI_GLOBAL_DAILY_LIMIT", "5000").to_i,
       # How long a submitted request stays open for quotes (D5, still pending: 24 h proposed).
-      request_ttl_hours: ENV.fetch("REQUEST_TTL_HOURS", "24").to_i
+      request_ttl_hours: ENV.fetch("REQUEST_TTL_HOURS", "24").to_i,
+      # D5 (pending, plan defaults): invite the 10 best-ranked workers, accept at most 5 quotes.
+      match_fanout: ENV.fetch("MATCH_FANOUT", "10").to_i,
+      max_quotes_per_request: ENV.fetch("MAX_QUOTES_PER_REQUEST", "5").to_i,
+      # A new lead is a critical event: SMS when no push subscription delivered it.
+      lead_sms_fallback: ENV.fetch("LEAD_SMS_FALLBACK", "true") == "true",
+      # Web push (bin/rails webpush:keys). Without keys, push is off and SMS covers critical events.
+      vapid_public_key: ENV["VAPID_PUBLIC_KEY"].presence,
+      vapid_private_key: ENV["VAPID_PRIVATE_KEY"].presence,
+      vapid_subject: ENV.fetch("VAPID_SUBJECT", "mailto:support@workerly.in")
     ).freeze
   end
 end

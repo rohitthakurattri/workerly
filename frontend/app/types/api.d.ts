@@ -892,6 +892,403 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/worker/leads": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Leads (approved workers only) */
+        get: {
+            parameters: {
+                query?: never;
+                header?: {
+                    Authorization?: string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description ok */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description not verified */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/worker/leads/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The request's id */
+                id: string;
+            };
+            cookie?: never;
+        };
+        /** One lead (marks it viewed) */
+        get: {
+            parameters: {
+                query?: never;
+                header?: {
+                    Authorization?: string;
+                };
+                path: {
+                    /** @description The request's id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description ok */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description not invited, declined or closed */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/worker/leads/{id}/decline": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Not interested (hides the lead) */
+        post: {
+            parameters: {
+                query?: never;
+                header?: {
+                    Authorization?: string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": {
+                        reason?: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description declined */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/cable_tickets": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** One-time ticket for the WebSocket (wss …/cable?ticket=…, valid 60 s) */
+        post: {
+            parameters: {
+                query?: never;
+                header?: {
+                    Authorization?: string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description ticket */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/devices/push_config": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Web push settings for the apps */
+        get: {
+            parameters: {
+                query?: never;
+                header?: {
+                    Authorization?: string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description ok */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/devices": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Save this browser's push subscription for the active app */
+        post: {
+            parameters: {
+                query?: never;
+                header?: {
+                    Authorization?: string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": {
+                        endpoint: string;
+                        keys: {
+                            p256dh?: string;
+                            auth?: string;
+                        };
+                    };
+                };
+            };
+            responses: {
+                /** @description saved */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        /** Remove this browser's subscription (logout, alerts off) */
+        delete: {
+            parameters: {
+                query?: never;
+                header?: {
+                    Authorization?: string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": {
+                        endpoint: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description removed */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/notifications": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** In-app notifications (newest first; meta.unread) */
+        get: {
+            parameters: {
+                query?: never;
+                header?: {
+                    Authorization?: string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description ok */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/service_requests": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Submitted requests; attention = open with nobody invited or no quotes after 30 min */
+        get: {
+            parameters: {
+                query?: {
+                    "filter[status]"?: string;
+                    "filter[attention]"?: "true";
+                };
+                header?: {
+                    Authorization?: string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description ok */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/service_requests/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        /** One request with its invitations (rank, score, distance, notified, viewed, declined) */
+        get: {
+            parameters: {
+                query?: never;
+                header?: {
+                    Authorization?: string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description ok */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/categories": {
         parameters: {
             query?: never;
@@ -1242,49 +1639,6 @@ export interface paths {
                 };
             };
         };
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/worker/leads": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Leads (approved workers only) */
-        get: {
-            parameters: {
-                query?: never;
-                header?: {
-                    Authorization?: string;
-                };
-                path?: never;
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description ok */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-                /** @description not verified */
-                403: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-            };
-        };
-        put?: never;
-        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -1722,6 +2076,8 @@ export interface components {
             missing: ("description" | "category" | "address")[];
             cancellable: boolean;
             cancel_reason?: string | null;
+            invited_count: number;
+            matched_at?: string | null;
             created_at: string;
             submitted_at?: string | null;
             expires_at?: string | null;
@@ -1739,6 +2095,107 @@ export interface components {
             created_at: string;
             submitted_at?: string | null;
             expires_at?: string | null;
+        };
+        lead: {
+            id: string;
+            /** @enum {string} */
+            status: "new" | "viewed" | "declined";
+            category: components["schemas"]["category_brief"];
+            description: string | null;
+            ai_summary?: string | null;
+            answers: {
+                question: string;
+                answer: string;
+            }[];
+            urgency: components["schemas"]["urgency"];
+            safety_flag: boolean;
+            preferred_from?: string | null;
+            preferred_to?: string | null;
+            locality: string;
+            city: string;
+            /** @enum {string} */
+            distance_band: "under_1km" | "1_3km" | "3_5km" | "5_10km" | "over_10km";
+            photos: components["schemas"]["request_photo"][];
+            invited_at: string;
+            expires_at: string;
+        };
+        notification: {
+            id: string;
+            kind: string;
+            title: string;
+            body?: string | null;
+            url?: string | null;
+            data?: Record<string, never>;
+            read: boolean;
+            created_at: string;
+        };
+        admin_service_request_summary: {
+            id: string;
+            status: components["schemas"]["request_status"];
+            urgency?: components["schemas"]["urgency"];
+            invited_count: number;
+            safety_flag?: boolean;
+            category: string;
+            city: string;
+            locality?: string | null;
+            customer?: {
+                name?: string | null;
+                phone?: string;
+            };
+            submitted_at: string;
+            matched_at?: string | null;
+            expires_at?: string;
+        };
+        admin_service_request_detail: {
+            id: string;
+            status: components["schemas"]["request_status"];
+            urgency?: components["schemas"]["urgency"];
+            description?: string | null;
+            ai_summary?: string | null;
+            safety_flag?: boolean;
+            category_source?: string | null;
+            invited_count?: number;
+            cancel_reason?: string | null;
+            answers?: {
+                question?: string;
+                answer?: string;
+            }[];
+            address_snapshot?: {
+                label?: string | null;
+                line1?: string;
+                line2?: string | null;
+                landmark?: string | null;
+                locality?: string;
+                pincode?: string;
+            };
+            category: string;
+            city?: string;
+            location?: components["schemas"]["lat_lng"];
+            customer?: {
+                id?: string;
+                name?: string | null;
+                phone?: string;
+            };
+            photos?: components["schemas"]["request_photo"][];
+            preferred_from?: string | null;
+            preferred_to?: string | null;
+            submitted_at?: string;
+            matched_at?: string | null;
+            expires_at?: string;
+            cancelled_at?: string | null;
+            invitations: {
+                rank: number;
+                score: number;
+                distance_m: number;
+                worker_id: string;
+                worker_name?: string | null;
+                notified_at?: string | null;
+                /** @enum {string|null} */
+                notified_via?: "push" | "sms" | "none" | null;
+                viewed_at?: string | null;
+                declined_at?: string | null;
+                decline_reason?: string | null;
+            }[];
         };
         page_meta: {
             next_cursor?: string | null;

@@ -9,3 +9,13 @@ hi:
     request_locked: "यह अनुरोध भेजा जा चुका है और अब बदला नहीं जा सकता।"
     too_many_photos: "आप अधिकतम 6 फ़ोटो जोड़ सकते हैं।"
     ai_unavailable: "अभी सुझाव उपलब्ध नहीं हैं। कृपया सेवा स्वयं चुनें।"
+  notifications:
+    lead_new:
+      title: "नया काम: %{category}"
+      body: "%{locality} में। कोटेशन भेजने के लिए खोलें।"
+    request_matched:
+      title:
+        one: "आपका अनुरोध पास के 1 कारीगर को भेजा गया"
+        other: "आपका अनुरोध पास के %{count} कारीगरों को भेजा गया"
+    request_unmatched:
+      title: "अभी पास में कोई कारीगर उपलब्ध नहीं है। हमारी टीम इसे देखेगी।"
