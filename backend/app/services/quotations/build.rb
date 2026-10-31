@@ -12,7 +12,8 @@ module Quotations
     MAX_TOTAL_MINOR = 50_000_000 # ₹5,00,000: above this, support quotes it by hand
     Draft = Data.define(:kind, :revision, :items)
 
-    def call(params:, request:, actor:, version:)
+    # stage: nil for a quote (initial / inspection_fee); "final" or "change_order" during a booking.
+    def call(params:, request:, actor:, version:, stage: nil)
       kind = params[:kind].to_s
       errors = {}
       errors["kind"] = [ "must be fixed or inspection" ] unless Quotation::KINDS.include?(kind)
@@ -39,7 +40,7 @@ module Quotations
       tax_rate_bps = category.tax_rate_bps
       tax = tax_for(subtotal, tax_rate_bps)
       revision = QuotationRevision.new(
-        version:, stage: kind == "inspection" ? "inspection_fee" : "initial", created_by: actor,
+        version:, stage: stage || (kind == "inspection" ? "inspection_fee" : "initial"), created_by: actor,
         subtotal_minor: subtotal, tax_rate_bps:, tax_minor: tax, total_minor: subtotal + tax,
         currency_code: request.city.currency_code,
         notes: params[:notes].presence && Shared::Redact.call(params[:notes].to_s),

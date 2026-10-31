@@ -10,11 +10,14 @@ const { canViewWorkers, canViewRequests } = useStaff()
 const { t } = useI18n()
 const waiting = ref<number | null>(null)
 const attention = ref<number | null>(null)
+const bookingAttention = ref<number | null>(null)
 
 onMounted(async () => {
   if (canViewRequests.value) {
     const res = await api<{ meta: { attention_count: number } }>('/admin/service_requests', { query: { 'filter[attention]': 'true', 'limit': 1 } })
     attention.value = res.meta.attention_count
+    const bookings = await api<{ meta: { attention_count: number } }>('/admin/bookings', { query: { 'filter[attention]': 'true', 'limit': 1 } })
+    bookingAttention.value = bookings.meta.attention_count
   }
   if (!canViewWorkers.value) return
   const res = await api<{ data: AdminWorkerSummary[], meta: { next_cursor: string | null } }>('/admin/workers', { query: { 'filter[status]': 'pending_review', 'limit': 100 } })
@@ -68,6 +71,23 @@ onMounted(async () => {
           class="font-medium text-brand-700 underline"
         >
           {{ t('admin.openRequests') }}
+        </NuxtLink>
+      </UiCard>
+      <UiCard v-if="canViewRequests">
+        <template #title>
+          {{ t('admin.bookingsAttention') }}
+        </template>
+        <p
+          class="text-3xl font-bold tabular-nums"
+          :class="{ 'text-danger': !!bookingAttention }"
+        >
+          {{ bookingAttention ?? '–' }}
+        </p>
+        <NuxtLink
+          to="/bookings?tab=attention"
+          class="font-medium text-brand-700 underline"
+        >
+          {{ t('admin.openBookings') }}
         </NuxtLink>
       </UiCard>
       <UiCard v-if="!canViewWorkers && !canViewRequests">

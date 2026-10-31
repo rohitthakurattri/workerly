@@ -52,7 +52,16 @@ Rails.application.routes.draw do
             post :decline
           end
         end
-        resources :bookings, only: %i[index show]
+        resources :bookings, only: %i[index show] do
+          member do
+            post :approvals
+            post :cancel
+            get :messages
+            post :messages, action: :post_message
+            post :review
+            post :disputes
+          end
+        end
       end
 
       namespace :worker do
@@ -72,7 +81,20 @@ Rails.application.routes.draw do
         resources :quotations, only: %i[index show update] do
           post :withdraw, on: :member
         end
-        resources :bookings, only: %i[index show]
+        resources :bookings, only: %i[index show] do
+          member do
+            post :schedule
+            post :check_in
+            post :final_quotation
+            post :start
+            post :change_orders
+            post :complete
+            post :cancel
+            get :messages
+            post :messages, action: :post_message
+          end
+        end
+        resources :reviews, only: :index
       end
 
       namespace :admin do
@@ -84,6 +106,12 @@ Rails.application.routes.draw do
           end
         end
         resources :service_requests, only: %i[index show]
+        resources :bookings, only: %i[index show] do
+          post :cancel, on: :member
+        end
+        resources :disputes, only: :index do
+          post :resolve, on: :member
+        end
         resources :audit_logs, only: :index
         resources :categories, only: %i[index create update]
       end

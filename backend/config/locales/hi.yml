@@ -36,3 +36,21 @@ hi:
       title: "आपका %{category} कोटेशन अस्वीकार हुआ"
     quote_lost:
       title: "ग्राहक ने %{category} के लिए दूसरा कारीगर चुना"
+    quote_reopened:
+      title: "जिस %{category} काम पर आपने कोटेशन दिया था, वह फिर से खुला है"
+    booking:
+      schedule: "%{worker} %{time} पर आएँगे"
+      check_in: "%{worker} पहुँच गए हैं"
+      final_quotation: "%{worker} की अंतिम कीमत: %{amount}। आगे बढ़ने के लिए मंज़ूर करें।"
+      approve_final: "%{customer} ने आपकी अंतिम कीमत मंज़ूर की"
+      reject_final: "%{customer} ने अंतिम कीमत मना की। विज़िट फ़ीस फिर भी देय है।"
+      start: "%{worker} ने काम शुरू कर दिया है"
+      change_order: "%{worker} अतिरिक्त शुल्क माँग रहे हैं: %{amount}"
+      approve_change: "%{customer} ने अतिरिक्त शुल्क मंज़ूर किया"
+      reject_change: "%{customer} ने अतिरिक्त शुल्क मना किया"
+      complete: "%{worker} ने काम पूरा कर दिया। कैसा रहा?"
+      cancel: "आपकी %{category} बुकिंग रद्द हो गई"
+      admin_cancel: "Workerly सहायता ने आपकी %{category} बुकिंग रद्द की"
+      dispute: "%{customer} ने %{category} काम में समस्या बताई"
+      resolve_dispute: "%{category} काम की बताई गई समस्या सहायता टीम ने सुलझा दी"
+      message: "%{name} का नया संदेश"

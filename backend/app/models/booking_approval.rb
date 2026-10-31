@@ -9,5 +9,7 @@ class BookingApproval < ApplicationRecord
   belongs_to :decided_by, class_name: "User"
   validates :decision, inclusion: { in: DECISIONS }
 
+  scope :approved, -> { where(decision: "approved") }
+
   def approved? = decision == "approved"
 end

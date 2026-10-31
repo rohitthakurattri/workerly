@@ -80,6 +80,14 @@ en:
     idempotency_key_invalid: "Idempotency-Key must be 8–255 letters, digits or - _ . :"
     idempotency_key_reused: "This Idempotency-Key was used for a different request."
     idempotency_key_in_progress: "This request is still being processed."
+    revision_not_pending: "That price is no longer waiting for your answer. Please refresh."
+    chat_closed: "Chat for this booking has closed."
+    review_not_allowed: "You can review a job once it's finished."
+    review_window_closed: "The time to review this job has passed."
+    already_reviewed: "You've already reviewed this job."
+    dispute_window_closed: "The time to report a problem with this job has passed. Please contact support."
+    dispute_already_open: "You've already reported a problem with this job."
+    dispute_not_open: "This dispute is already resolved."
   notifications:
     lead_new:
       title: "New job: %{category}"
@@ -105,3 +113,21 @@ en:
       title: "Your %{category} quote was declined"
     quote_lost:
       title: "The customer chose another worker for %{category}"
+    quote_reopened:
+      title: "A %{category} job you quoted on is open again"
+    booking:
+      schedule: "%{worker} will come on %{time}"
+      check_in: "%{worker} has arrived"
+      final_quotation: "Final price from %{worker}: %{amount}. Approve it to go ahead."
+      approve_final: "%{customer} approved your final price"
+      reject_final: "%{customer} said no to the final price. The visit fee is still due."
+      start: "%{worker} has started the work"
+      change_order: "%{worker} asks for extra charges: %{amount}"
+      approve_change: "%{customer} approved the extra charges"
+      reject_change: "%{customer} said no to the extra charges"
+      complete: "%{worker} has finished. How did it go?"
+      cancel: "Your %{category} booking was cancelled"
+      admin_cancel: "Workerly support cancelled your %{category} booking"
+      dispute: "%{customer} reported a problem with the %{category} job"
+      resolve_dispute: "Support has resolved the problem reported on the %{category} job"
+      message: "New message from %{name}"

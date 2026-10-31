@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import type { Lead, QuotationInput, QuotationKind, WorkerQuotation } from '~/types/models'
+import type { QuotationInput, QuotationKind, WorkerQuotation } from '~/types/models'
 import { ApiError } from '~/utils/api-error'
 import { formatMoney } from '~/utils/money'
 import {
@@ -8,12 +8,21 @@ import {
   MAX_ITEMS, MAX_TOTAL_MINOR, quoteTotals, taxFor, toMinor, UNITS, type QuoteLine,
 } from '~/utils/quotes'
 
-const props = defineProps<{ lead: Lead, initial?: WorkerQuotation | null, loading?: boolean }>()
+// mode "quote": a first quote or a change (fixed or inspection). "final" and "change": during a
+// booking, the price after an inspection or extra charges; always itemised, never an inspection.
+const props = withDefaults(defineProps<{
+  currency: string
+  taxRateBps: number
+  inspectionAllowed?: boolean
+  initial?: WorkerQuotation | null
+  loading?: boolean
+  mode?: 'quote' | 'final' | 'change'
+}>(), { inspectionAllowed: false, initial: null, loading: false, mode: 'quote' })
 const emit = defineEmits<{ submit: [body: QuotationInput] }>()
 defineExpose({ showServerErrors })
 
 const { t } = useI18n()
-const currency = computed(() => props.lead.currency)
+const currency = computed(() => props.currency)
 const money = (minor: number) => formatMoney({ minor, currency: currency.value })
 
 const kind = ref<QuotationKind>(props.initial?.kind ?? 'fixed')
@@ -25,7 +34,7 @@ const hours = ref(String(Math.floor(est / 60)))
 const minutes = ref(String(est % 60))
 const serverErrors = ref<Record<string, string[]>>({})
 
-const taxBps = computed(() => props.lead.category.tax_rate_bps)
+const taxBps = computed(() => props.taxRateBps)
 const totals = computed(() => {
   if (kind.value === 'fixed') return quoteTotals(lines.value, taxBps.value)
   const subtotal = toMinor(fee.value) ?? 0
@@ -86,7 +95,10 @@ function submit() {
     novalidate
     @submit.prevent="submit"
   >
-    <fieldset class="flex flex-col gap-2">
+    <fieldset
+      v-if="mode === 'quote'"
+      class="flex flex-col gap-2"
+    >
       <legend class="mb-1 text-sm font-medium">
         {{ t('quote.kind') }}
       </legend>
@@ -94,7 +106,7 @@ function submit() {
         v-for="k in (['fixed', 'inspection'] as const)"
         :key="k"
         class="flex cursor-pointer gap-3 rounded-[var(--radius-control)] border p-3"
-        :class="[kind === k ? 'border-brand-600 bg-brand-50' : 'border-border', k === 'inspection' && !lead.category.inspection_allowed ? 'hidden' : '']"
+        :class="[kind === k ? 'border-brand-600 bg-brand-50' : 'border-border', k === 'inspection' && !inspectionAllowed ? 'hidden' : '']"
       >
         <input
           v-model="kind"
@@ -302,7 +314,7 @@ function submit() {
       :loading="loading"
       data-testid="send-quote"
     >
-      {{ initial ? t('quote.update') : t('quote.send') }}
+      {{ mode === 'final' ? t('jobs.sendFinal') : mode === 'change' ? t('jobs.sendChange') : initial ? t('quote.update') : t('quote.send') }}
     </UiButton>
   </form>
 </template>

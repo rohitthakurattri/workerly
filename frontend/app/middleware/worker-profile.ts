@@ -4,7 +4,7 @@ import { workerHome } from '~/utils/onboarding'
 /**
  * Worker app routing by verification state:
  * draft/changes_requested -> /onboarding, pending/rejected/suspended -> /verification, approved -> leads
- * (the home page, /leads/*, /quotes and /jobs/*).
+ * (the home page, /leads/*, /quotes, /reviews and /jobs/*).
  * UX only: the API enforces the same rules (LeadPolicy, WorkerProfilePolicy).
  */
 export default defineNuxtRouteMiddleware(async (to) => {
@@ -21,6 +21,6 @@ export default defineNuxtRouteMiddleware(async (to) => {
     }
   }
   const home = workerHome(profile.value)
-  if (home === '/' && (to.path.startsWith('/leads/') || to.path.startsWith('/jobs/') || to.path === '/quotes')) return
+  if (home === '/' && (to.path.startsWith('/leads/') || to.path.startsWith('/jobs/') || ['/quotes', '/reviews'].includes(to.path))) return
   if (home !== to.path) return navigateTo(home)
 })

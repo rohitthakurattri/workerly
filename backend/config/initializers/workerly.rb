@@ -11,7 +11,9 @@ module Workerly
   Config = Struct.new(:jwt_secret, :otp_pepper, :token_pepper, :sms_adapter, :secure_cookies,
                       :ai_adapter, :ai_triage_enabled, :ai_triage_model, :ai_user_daily_limit, :ai_global_daily_limit,
                       :request_ttl_hours, :match_fanout, :max_quotes_per_request, :lead_sms_fallback,
-                      :vapid_public_key, :vapid_private_key, :vapid_subject, keyword_init: true)
+                      :vapid_public_key, :vapid_private_key, :vapid_subject,
+                      :inspection_fee_adjusted, :booking_contact_hours, :review_window_days, :dispute_window_days,
+                      keyword_init: true)
 
   def self.config
     @config ||= Config.new(
@@ -36,7 +38,14 @@ module Workerly
       # Web push (bin/rails webpush:keys). Without keys, push is off and SMS covers critical events.
       vapid_public_key: ENV["VAPID_PUBLIC_KEY"].presence,
       vapid_private_key: ENV["VAPID_PRIVATE_KEY"].presence,
-      vapid_subject: ENV.fetch("VAPID_SUBJECT", "mailto:support@workerly.in")
+      vapid_subject: ENV.fetch("VAPID_SUBJECT", "mailto:support@workerly.in"),
+      # Phase 6 policy defaults (open requirements in the plan; see docs/adr/0008):
+      # the visit fee is taken off the repair bill when the customer approves the final price.
+      inspection_fee_adjusted: ENV.fetch("INSPECTION_FEE_ADJUSTED", "true") == "true",
+      # Contact details and chat stay open this long after completion.
+      booking_contact_hours: ENV.fetch("BOOKING_CONTACT_HOURS", "48").to_i,
+      review_window_days: ENV.fetch("REVIEW_WINDOW_DAYS", "30").to_i,
+      dispute_window_days: ENV.fetch("DISPUTE_WINDOW_DAYS", "7").to_i
     ).freeze
   end
 end

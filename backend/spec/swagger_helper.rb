@@ -242,26 +242,77 @@ RSpec.configure do |config|
                           landmark: { type: :string, nullable: true }, locality: { type: :string }, pincode: { type: :string },
                           city: { type: :string }, location: { "$ref" => "#/components/schemas/lat_lng" } }
           },
+          booking_event: { type: :string, enum: Bookings::Transitions::EVENTS.map(&:to_s) },
           booking: {
-            type: :object, required: %w[id status kind request_id category approved_total revision quotation_id confirmed_at],
+            type: :object, required: %w[id status kind request_id category approved_total revision quotation_id confirmed_at
+                                        approvals history actions contact_visible chat_open],
             properties: { id: { type: :string }, status: { "$ref" => "#/components/schemas/booking_status" },
                           kind: { "$ref" => "#/components/schemas/quotation_kind" }, request_id: { type: :string },
-                          category: { "$ref" => "#/components/schemas/category_brief" }, approved_total: { "$ref" => "#/components/schemas/money" },
+                          category: { "$ref" => "#/components/schemas/category_brief" },
+                          approved_total: { allOf: [ { "$ref" => "#/components/schemas/money" } ], description: "What the customer owes: approved revisions only" },
                           revision: { "$ref" => "#/components/schemas/quotation_revision" }, quotation_id: { type: :string },
+                          pending_revision: { allOf: [ { "$ref" => "#/components/schemas/quotation_revision" } ], nullable: true },
+                          approvals: { type: :array, items: { type: :object, required: %w[revision_id version stage decision total decided_at],
+                            properties: { revision_id: { type: :string }, version: { type: :integer }, stage: { type: :string },
+                                          decision: { type: :string, enum: %w[approved rejected] }, total: { "$ref" => "#/components/schemas/money" },
+                                          decided_at: { type: :string } } } },
+                          history: { type: :array, items: { type: :object, required: %w[to at],
+                            properties: { from: { type: :string, nullable: true }, to: { type: :string }, event: { type: :string, nullable: true },
+                                          by: { type: :string, nullable: true }, at: { type: :string } } } },
                           preferred_from: { type: :string, nullable: true }, preferred_to: { type: :string, nullable: true },
-                          confirmed_at: { type: :string }, address: { "$ref" => "#/components/schemas/booking_address" } }
+                          confirmed_at: { type: :string }, scheduled_at: { type: :string, nullable: true },
+                          checked_in_at: { type: :string, nullable: true }, started_at: { type: :string, nullable: true },
+                          completed_at: { type: :string, nullable: true }, cancelled_at: { type: :string, nullable: true },
+                          cancelled_by: { type: :string, nullable: true }, cancel_reason: { type: :string, nullable: true },
+                          contact_visible: { type: :boolean }, chat_open: { type: :boolean },
+                          actions: { type: :array, items: { "$ref" => "#/components/schemas/booking_event" } },
+                          review: { type: :object, nullable: true, properties: { rating: { type: :integer }, body: { type: :string, nullable: true }, created_at: { type: :string } } },
+                          dispute: { type: :object, nullable: true,
+                                     properties: { id: { type: :string }, category: { type: :string }, description: { type: :string },
+                                                   status: { type: :string, enum: %w[open resolved] }, resolution: { type: :string, nullable: true },
+                                                   created_at: { type: :string }, resolved_at: { type: :string, nullable: true } } },
+                          address: { "$ref" => "#/components/schemas/booking_address" } }
+          },
+          message: {
+            type: :object, required: %w[id sender_role body created_at],
+            properties: { id: { type: :string }, sender_role: { type: :string, enum: %w[customer worker] }, sender_name: { type: :string, nullable: true },
+                          body: { type: :string }, created_at: { type: :string } }
+          },
+          admin_booking_summary: {
+            type: :object, required: %w[id status kind category approved_total confirmed_at],
+            properties: { id: { type: :string }, status: { "$ref" => "#/components/schemas/booking_status" }, kind: { "$ref" => "#/components/schemas/quotation_kind" },
+                          category: { type: :string }, locality: { type: :string, nullable: true }, customer_name: { type: :string, nullable: true },
+                          worker_name: { type: :string, nullable: true }, approved_total: { "$ref" => "#/components/schemas/money" },
+                          confirmed_at: { type: :string }, scheduled_at: { type: :string, nullable: true }, updated_at: { type: :string } }
+          },
+          admin_booking: {
+            allOf: [ { "$ref" => "#/components/schemas/booking" },
+                     { type: :object, required: %w[customer worker messages],
+                       properties: { customer: { type: :object, properties: { id: { type: :string }, name: { type: :string, nullable: true }, phone: { type: :string } } },
+                                     worker: { type: :object, properties: { id: { type: :string }, name: { type: :string, nullable: true }, phone: { type: :string } } },
+                                     locality: { type: :string, nullable: true },
+                                     messages: { type: :array, items: { "$ref" => "#/components/schemas/message" } } } } ]
+          },
+          admin_dispute: {
+            type: :object, required: %w[id category description status booking_id booking_status created_at],
+            properties: { id: { type: :string }, category: { type: :string }, description: { type: :string }, status: { type: :string, enum: %w[open resolved] },
+                          resolution: { type: :string, nullable: true }, booking_id: { type: :string }, booking_status: { "$ref" => "#/components/schemas/booking_status" },
+                          approved_total: { "$ref" => "#/components/schemas/money" }, customer_name: { type: :string, nullable: true },
+                          worker_name: { type: :string, nullable: true }, created_at: { type: :string }, resolved_at: { type: :string, nullable: true } }
           },
           customer_booking: {
             allOf: [ { "$ref" => "#/components/schemas/booking" },
-                     { type: :object, required: %w[worker], properties: { worker: { "$ref" => "#/components/schemas/worker_card" } } } ]
+                     { type: :object, required: %w[worker can_review can_dispute],
+                       properties: { worker: { "$ref" => "#/components/schemas/worker_card" }, can_review: { type: :boolean }, can_dispute: { type: :boolean } } } ]
           },
           worker_booking: {
             allOf: [ { "$ref" => "#/components/schemas/booking" },
-                     { type: :object, required: %w[answers urgency photos],
+                     { type: :object, required: %w[answers urgency photos currency tax_rate_bps],
                        properties: { customer: { type: :object, nullable: true, properties: { name: { type: :string, nullable: true }, phone: { type: :string } } },
                                      description: { type: :string, nullable: true }, urgency: { "$ref" => "#/components/schemas/urgency" },
                                      answers: { type: :array, items: { type: :object, properties: { question: { type: :string }, answer: { type: :string } } } },
-                                     photos: { type: :array, items: { "$ref" => "#/components/schemas/request_photo" } } } } ]
+                                     photos: { type: :array, items: { "$ref" => "#/components/schemas/request_photo" } },
+                                     currency: { type: :string }, tax_rate_bps: { type: :integer } } } ]
           },
           notification: {
             type: :object, required: %w[id kind title read created_at],

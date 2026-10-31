@@ -80,7 +80,9 @@ async function save(body: QuotationInput) {
       </div>
       <WorkerQuoteForm
         ref="form"
-        :lead="lead"
+        :currency="lead.currency"
+        :tax-rate-bps="lead.category.tax_rate_bps"
+        :inspection-allowed="lead.category.inspection_allowed"
         :initial="lead.quotation"
         :loading="saving"
         @submit="save"

@@ -1,33 +1,82 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
-import type { WorkerBooking } from '~/types/models'
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import type { QuotationInput } from '~/types/models'
 import { ApiError } from '~/utils/api-error'
+import { fromLocalInput, toLocalInput } from '~/utils/bookings'
 import { formatMoney } from '~/utils/money'
 
 definePageMeta({ middleware: ['worker-profile'] })
 
+const TZ = 'Asia/Kolkata'
 const route = useRoute()
-const { findJob } = useQuotes()
+const { booking: job, messages, load, loadMessages, send, live, schedule, checkIn, start, complete, finalQuotation, changeOrder, cancel } = useBooking('worker')
+const toast = useToast()
 const { t, locale } = useI18n()
 
-const job = ref<WorkerBooking | null>(null)
 const gone = ref(false)
+const busy = ref(false)
+const when = ref('')
+const priceForm = ref<'final' | 'change' | null>(null)
+const confirmComplete = ref(false)
+const confirmCancel = ref(false)
+const cancelReason = ref('')
+const form = ref<{ showServerErrors: (e: unknown) => void } | null>(null)
+let stopLive = () => {}
 
 onMounted(async () => {
   try {
-    job.value = await findJob(String(route.params.id))
+    await load(String(route.params.id))
+    when.value = toLocalInput(job.value!.scheduled_at, TZ)
+    await loadMessages()
+    stopLive = live(() => {
+      when.value = toLocalInput(job.value?.scheduled_at, TZ)
+    })
   }
   catch (e) {
     if ([403, 404].includes(ApiError.from(e).status)) gone.value = true
     else throw e
   }
 })
+onBeforeUnmount(() => stopLive())
 
+const can = (action: string) => !!job.value?.actions.includes(action as never)
 const mapUrl = computed(() => {
   const loc = job.value?.address?.location
   return loc ? `https://www.google.com/maps/search/?api=1&query=${loc.lat},${loc.lng}` : null
 })
-const fmt = (iso: string) => new Intl.DateTimeFormat(locale.value, { weekday: 'short', day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit', timeZone: 'Asia/Kolkata' }).format(new Date(iso))
+const minWhen = computed(() => toLocalInput(new Date(Date.now() + 5 * 60_000).toISOString(), TZ))
+
+async function run(fn: () => Promise<unknown>, done: string) {
+  busy.value = true
+  try {
+    await fn()
+    toast.success(done)
+    return true
+  }
+  catch (e) {
+    const err = ApiError.from(e)
+    if (err.code === 'validation_failed' && priceForm.value) form.value?.showServerErrors(e)
+    toast.error(err.message)
+    return false
+  }
+  finally {
+    busy.value = false
+  }
+}
+
+const saveTime = () => when.value && run(() => schedule(fromLocalInput(when.value, TZ)), t('jobs.timeSet'))
+async function sendPrice(body: QuotationInput) {
+  const ok = await run(() => (priceForm.value === 'final' ? finalQuotation(body) : changeOrder(body)), t('quote.sent'))
+  if (ok) priceForm.value = null
+}
+async function doComplete() {
+  if (await run(complete, t('jobs.completed'))) confirmComplete.value = false
+}
+async function doCancel() {
+  if (await run(() => cancel(cancelReason.value.trim() || undefined), t('jobs.cancelled'))) confirmCancel.value = false
+}
+
+const fmt = (iso: string) => new Intl.DateTimeFormat(locale.value, { weekday: 'short', day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit', timeZone: TZ }).format(new Date(iso))
 </script>
 
 <template>
@@ -47,17 +96,130 @@ const fmt = (iso: string) => new Intl.DateTimeFormat(locale.value, { weekday: 's
       :lines="6"
     />
     <template v-else>
-      <div>
-        <p class="text-sm font-medium text-success">
-          {{ t('jobs.won') }}
-        </p>
+      <div class="flex flex-col gap-2">
         <h1 class="text-2xl font-semibold">
           {{ job.category.name }}
         </h1>
-        <UiBadge tone="success">
-          {{ t(`bookingStatus.${job.status}`, job.status) }}
-        </UiBadge>
+        <SharedBookingProgress
+          :kind="job.kind"
+          :status="job.status"
+        />
       </div>
+
+      <!-- What the worker can do now -->
+      <UiCard data-testid="job-actions">
+        <div class="flex flex-col gap-3">
+          <p
+            v-if="job.pending_revision"
+            class="rounded-[var(--radius-control)] bg-warning-soft p-3 text-sm text-warning"
+          >
+            {{ t('jobs.waitingApproval', { amount: formatMoney(job.pending_revision.total) }) }}
+          </p>
+          <form
+            v-if="can('schedule')"
+            class="flex flex-wrap items-end gap-2"
+            @submit.prevent="saveTime"
+          >
+            <label class="flex flex-col gap-1">
+              <span class="text-sm font-medium">{{ t('jobs.visitTime') }}</span>
+              <input
+                v-model="when"
+                type="datetime-local"
+                :min="minWhen"
+                required
+                class="h-11 rounded-[var(--radius-control)] border border-border bg-surface px-3"
+                data-testid="visit-time"
+              >
+            </label>
+            <UiButton
+              type="submit"
+              :loading="busy"
+              :variant="job.scheduled_at ? 'secondary' : 'primary'"
+            >
+              {{ job.scheduled_at ? t('jobs.changeTime') : t('jobs.setTime') }}
+            </UiButton>
+          </form>
+          <p
+            v-else-if="job.scheduled_at"
+            class="text-sm"
+          >
+            {{ t('booking.visitAt', { time: fmt(job.scheduled_at) }) }}
+          </p>
+          <div class="flex flex-wrap gap-2">
+            <UiButton
+              v-if="can('check_in')"
+              :loading="busy"
+              @click="run(checkIn, t('jobs.checkedIn'))"
+            >
+              {{ t('jobs.checkIn') }}
+            </UiButton>
+            <UiButton
+              v-if="can('final_quotation')"
+              @click="priceForm = 'final'"
+            >
+              {{ t('jobs.sendFinal') }}
+            </UiButton>
+            <UiButton
+              v-if="can('start')"
+              :loading="busy"
+              @click="run(start, t('jobs.started'))"
+            >
+              {{ t('jobs.start') }}
+            </UiButton>
+            <UiButton
+              v-if="can('complete')"
+              @click="confirmComplete = true"
+            >
+              {{ t('jobs.complete') }}
+            </UiButton>
+            <UiButton
+              v-if="can('change_order')"
+              variant="secondary"
+              @click="priceForm = 'change'"
+            >
+              {{ t('jobs.sendChange') }}
+            </UiButton>
+            <UiButton
+              v-if="can('cancel')"
+              variant="ghost"
+              @click="confirmCancel = true"
+            >
+              {{ t('jobs.cancel') }}
+            </UiButton>
+          </div>
+          <p
+            v-if="!job.actions.length && !job.pending_revision"
+            class="text-sm text-ink-muted"
+          >
+            {{ t('jobs.noActions') }}
+          </p>
+        </div>
+      </UiCard>
+
+      <UiCard v-if="priceForm">
+        <template #title>
+          {{ priceForm === 'final' ? t('jobs.finalTitle') : t('jobs.changeTitle') }}
+        </template>
+        <p class="mb-3 text-sm text-ink-muted">
+          {{ priceForm === 'final' ? t('jobs.finalHint') : t('jobs.changeHint') }}
+        </p>
+        <WorkerQuoteForm
+          ref="form"
+          :currency="job.currency"
+          :tax-rate-bps="job.tax_rate_bps"
+          :mode="priceForm"
+          :loading="busy"
+          @submit="sendPrice"
+        />
+        <UiButton
+          class="mt-2"
+          variant="ghost"
+          @click="priceForm = null"
+        >
+          {{ t('common.cancel') }}
+        </UiButton>
+      </UiCard>
+
       <UiCard>
         <dl class="flex flex-col gap-3">
           <div v-if="job.customer">
@@ -75,6 +237,12 @@ const fmt = (iso: string) => new Intl.DateTimeFormat(locale.value, { weekday: 's
               >📞 {{ t('jobs.call', { name: job.customer.name || job.customer.phone }) }}</a>
             </dd>
           </div>
+          <p
+            v-else
+            class="text-sm text-ink-muted"
+          >
+            {{ t('jobs.contactHidden') }}
+          </p>
           <div v-if="job.address">
             <dt class="text-xs uppercase tracking-wide text-ink-muted">
               {{ t('jobs.address') }}
@@ -133,15 +301,91 @@ const fmt = (iso: string) => new Intl.DateTimeFormat(locale.value, { weekday: 's
           </div>
         </dl>
       </UiCard>
+
       <UiCard>
         <template #title>
-          {{ job.kind === 'inspection' ? t('jobs.visitFee') : t('jobs.agreed') }}: {{ formatMoney(job.approved_total) }}
+          {{ t('jobs.owed') }}: <span data-testid="amount-due">{{ formatMoney(job.approved_total) }}</span>
         </template>
+        <p class="mb-2 text-xs text-ink-muted">
+          {{ t('jobs.owedHint') }}
+        </p>
         <SharedQuoteBreakdown :revision="job.revision" />
+        <ul
+          v-if="job.approvals.length > 1"
+          class="mt-3 flex flex-col gap-1 text-sm"
+        >
+          <li
+            v-for="a in job.approvals"
+            :key="a.revision_id"
+            class="flex justify-between"
+            :class="a.decision === 'rejected' && 'text-ink-muted line-through'"
+          >
+            <span>{{ t(`quote.stages.${a.stage}`) }} · {{ t('quote.version', { n: a.version }) }}</span>
+            <span>{{ formatMoney(a.total) }}</span>
+          </li>
+        </ul>
+        <p
+          v-if="job.review"
+          class="mt-3 text-sm font-medium"
+        >
+          {{ t('jobs.rating', { rating: job.review.rating }) }}<template v-if="job.review.body">
+            · “{{ job.review.body }}”
+          </template>
+        </p>
       </UiCard>
+
+      <SharedBookingChat
+        :messages="messages"
+        me="worker"
+        :open="job.chat_open"
+        :send="send"
+      />
       <p class="text-sm text-ink-muted">
         {{ t('jobs.nextSteps') }}
       </p>
     </template>
+
+    <UiConfirmDialog
+      v-model:open="confirmComplete"
+      :title="t('jobs.completeTitle')"
+      :message="t('jobs.completeBody')"
+      :confirm-label="t('jobs.complete')"
+      :cancel-label="t('common.cancel')"
+      :loading="busy"
+      @confirm="doComplete"
+    />
+    <UiModal
+      v-model:open="confirmCancel"
+      :title="t('jobs.cancelTitle')"
+    >
+      <form
+        class="flex flex-col gap-4"
+        @submit.prevent="doCancel"
+      >
+        <p class="text-sm text-ink-muted">
+          {{ t('jobs.cancelBody') }}
+        </p>
+        <UiInput
+          v-model="cancelReason"
+          :label="t('leads.declineReason')"
+          maxlength="500"
+        />
+        <div class="flex justify-end gap-2">
+          <UiButton
+            variant="ghost"
+            @click="confirmCancel = false"
+          >
+            {{ t('common.cancel') }}
+          </UiButton>
+          <UiButton
+            type="submit"
+            variant="danger"
+            :loading="busy"
+          >
+            {{ t('jobs.cancel') }}
+          </UiButton>
+        </div>
+      </form>
+    </UiModal>
   </div>
 </template>

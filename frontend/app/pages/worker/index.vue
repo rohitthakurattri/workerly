@@ -2,6 +2,7 @@
 import { onBeforeUnmount, onMounted, ref } from 'vue'
 import { useAuthStore } from '~/stores/auth'
 import { ApiError } from '~/utils/api-error'
+import { bookingTone } from '~/utils/bookings'
 import { formatMoney } from '~/utils/money'
 
 // Approved workers see leads here; everyone else is routed to onboarding/verification.
@@ -124,7 +125,10 @@ onBeforeUnmount(() => stopLive())
                 <strong class="block truncate">{{ job.category.name }}</strong>
                 <span class="block truncate text-sm text-ink-muted">{{ job.customer?.name }} · {{ job.address?.locality }}</span>
               </span>
-              <strong class="shrink-0">{{ formatMoney(job.approved_total) }}</strong>
+              <span class="flex shrink-0 flex-col items-end gap-1">
+                <strong>{{ formatMoney(job.approved_total) }}</strong>
+                <UiBadge :tone="bookingTone(job.status)">{{ t(`bookingStatus.${job.status}`) }}</UiBadge>
+              </span>
             </NuxtLink>
           </li>
         </ul>
@@ -153,10 +157,16 @@ onBeforeUnmount(() => stopLive())
           />
         </div>
       </UiCard>
-      <NuxtLink
-        to="/quotes"
-        class="text-sm text-brand-700"
-      >{{ t('quotes.nav') }} →</NuxtLink>
+      <div class="flex gap-4">
+        <NuxtLink
+          to="/quotes"
+          class="text-sm text-brand-700"
+        >{{ t('quotes.nav') }} →</NuxtLink>
+        <NuxtLink
+          to="/reviews"
+          class="text-sm text-brand-700"
+        >{{ t('reviews.nav') }} →</NuxtLink>
+      </div>
       <WorkerJobAlerts />
     </template>
 

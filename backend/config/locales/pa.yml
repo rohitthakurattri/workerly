@@ -22,3 +22,21 @@ pa:
       title: "ਤੁਹਾਡਾ %{category} ਕੋਟੇਸ਼ਨ ਨਾਮਨਜ਼ੂਰ ਹੋਇਆ"
     quote_lost:
       title: "ਗਾਹਕ ਨੇ %{category} ਲਈ ਕੋਈ ਹੋਰ ਕਾਰੀਗਰ ਚੁਣਿਆ"
+    quote_reopened:
+      title: "ਜਿਸ %{category} ਕੰਮ 'ਤੇ ਤੁਸੀਂ ਕੋਟੇਸ਼ਨ ਦਿੱਤਾ ਸੀ, ਉਹ ਮੁੜ ਖੁੱਲ੍ਹ ਗਿਆ ਹੈ"
+    booking:
+      schedule: "%{worker} %{time} ਨੂੰ ਆਉਣਗੇ"
+      check_in: "%{worker} ਪਹੁੰਚ ਗਏ ਹਨ"
+      final_quotation: "%{worker} ਦੀ ਆਖਰੀ ਕੀਮਤ: %{amount}। ਅੱਗੇ ਵਧਣ ਲਈ ਮਨਜ਼ੂਰ ਕਰੋ।"
+      approve_final: "%{customer} ਨੇ ਤੁਹਾਡੀ ਆਖਰੀ ਕੀਮਤ ਮਨਜ਼ੂਰ ਕੀਤੀ"
+      reject_final: "%{customer} ਨੇ ਆਖਰੀ ਕੀਮਤ ਤੋਂ ਨਾਂਹ ਕੀਤੀ। ਵਿਜ਼ਿਟ ਫ਼ੀਸ ਫਿਰ ਵੀ ਦੇਣੀ ਹੈ।"
+      start: "%{worker} ਨੇ ਕੰਮ ਸ਼ੁਰੂ ਕਰ ਦਿੱਤਾ ਹੈ"
+      change_order: "%{worker} ਵਾਧੂ ਖਰਚਾ ਮੰਗ ਰਹੇ ਹਨ: %{amount}"
+      approve_change: "%{customer} ਨੇ ਵਾਧੂ ਖਰਚਾ ਮਨਜ਼ੂਰ ਕੀਤਾ"
+      reject_change: "%{customer} ਨੇ ਵਾਧੂ ਖਰਚੇ ਤੋਂ ਨਾਂਹ ਕੀਤੀ"
+      complete: "%{worker} ਨੇ ਕੰਮ ਪੂਰਾ ਕਰ ਦਿੱਤਾ। ਕਿਵੇਂ ਰਿਹਾ?"
+      cancel: "ਤੁਹਾਡੀ %{category} ਬੁਕਿੰਗ ਰੱਦ ਹੋ ਗਈ"
+      admin_cancel: "Workerly ਸਹਾਇਤਾ ਨੇ ਤੁਹਾਡੀ %{category} ਬੁਕਿੰਗ ਰੱਦ ਕੀਤੀ"
+      dispute: "%{customer} ਨੇ %{category} ਕੰਮ ਵਿੱਚ ਸਮੱਸਿਆ ਦੱਸੀ"
+      resolve_dispute: "%{category} ਕੰਮ ਦੀ ਦੱਸੀ ਸਮੱਸਿਆ ਸਹਾਇਤਾ ਟੀਮ ਨੇ ਹੱਲ ਕਰ ਦਿੱਤੀ"
+      message: "%{name} ਦਾ ਨਵਾਂ ਸੁਨੇਹਾ"

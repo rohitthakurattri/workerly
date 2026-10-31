@@ -7,7 +7,7 @@ import { resolve } from 'node:path'
 const backend = resolve(import.meta.dirname, '../../backend')
 
 export interface Seed {
-  phones: { dual: string, admin: string, logout: string, fresh: string, new_worker: string, customer: string, pro_near: string, pro_far: string, pro_near2: string }
+  phones: { dual: string, admin: string, logout: string, fresh: string, new_worker: string, customer: string, pro_near: string, pro_far: string, pro_near2: string, pro_jobs: string }
   totp_secret: string
   camera_photo: string
 }
@@ -55,7 +55,7 @@ export async function postRequest(page: Page, description: string) {
   await page.getByRole('button', { name: 'Post a job' }).click()
   await page.getByLabel('Describe the problem').fill(description)
   await page.getByRole('button', { name: 'Continue' }).click()
-  await page.getByRole('radio', { name: /Plumber/ }).check()
+  await page.getByRole('radio', { name: /Plumber/ }).check({ force: true }) // the styled label covers the input
   await page.getByRole('button', { name: 'Continue' }).click()
   await page.getByText('Pin set. Drag it to adjust.').waitFor()
   await page.getByLabel('House / flat number and street').fill('House 77')

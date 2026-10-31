@@ -34,6 +34,20 @@ const { t } = useI18n()
           {{ t('admin.requests') }}
         </NuxtLink>
         <NuxtLink
+          v-if="canViewRequests"
+          to="/bookings"
+          class="admin-tab"
+        >
+          {{ t('admin.bookings') }}
+        </NuxtLink>
+        <NuxtLink
+          v-if="canViewRequests"
+          to="/disputes"
+          class="admin-tab"
+        >
+          {{ t('admin.disputes') }}
+        </NuxtLink>
+        <NuxtLink
           v-if="canViewAudit"
           to="/audit-logs"
           class="admin-tab"

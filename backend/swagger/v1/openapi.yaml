@@ -1084,6 +1084,23 @@ components:
           type: string
         location:
           "$ref": "#/components/schemas/lat_lng"
+    booking_event:
+      type: string
+      enum:
+      - schedule
+      - check_in
+      - final_quotation
+      - approve_final
+      - reject_final
+      - start
+      - change_order
+      - approve_change
+      - reject_change
+      - complete
+      - cancel
+      - admin_cancel
+      - dispute
+      - resolve_dispute
     booking:
       type: object
       required:
@@ -1096,6 +1113,11 @@ components:
       - revision
       - quotation_id
       - confirmed_at
+      - approvals
+      - history
+      - actions
+      - contact_visible
+      - chat_open
       properties:
         id:
           type: string
@@ -1108,11 +1130,65 @@ components:
         category:
           "$ref": "#/components/schemas/category_brief"
         approved_total:
-          "$ref": "#/components/schemas/money"
+          allOf:
+          - "$ref": "#/components/schemas/money"
+          description: 'What the customer owes: approved revisions only'
         revision:
           "$ref": "#/components/schemas/quotation_revision"
         quotation_id:
           type: string
+        pending_revision:
+          allOf:
+          - "$ref": "#/components/schemas/quotation_revision"
+          nullable: true
+        approvals:
+          type: array
+          items:
+            type: object
+            required:
+            - revision_id
+            - version
+            - stage
+            - decision
+            - total
+            - decided_at
+            properties:
+              revision_id:
+                type: string
+              version:
+                type: integer
+              stage:
+                type: string
+              decision:
+                type: string
+                enum:
+                - approved
+                - rejected
+              total:
+                "$ref": "#/components/schemas/money"
+              decided_at:
+                type: string
+        history:
+          type: array
+          items:
+            type: object
+            required:
+            - to
+            - at
+            properties:
+              from:
+                type: string
+                nullable: true
+              to:
+                type: string
+              event:
+                type: string
+                nullable: true
+              by:
+                type: string
+                nullable: true
+              at:
+                type: string
         preferred_from:
           type: string
           nullable: true
@@ -1121,17 +1197,222 @@ components:
           nullable: true
         confirmed_at:
           type: string
+        scheduled_at:
+          type: string
+          nullable: true
+        checked_in_at:
+          type: string
+          nullable: true
+        started_at:
+          type: string
+          nullable: true
+        completed_at:
+          type: string
+          nullable: true
+        cancelled_at:
+          type: string
+          nullable: true
+        cancelled_by:
+          type: string
+          nullable: true
+        cancel_reason:
+          type: string
+          nullable: true
+        contact_visible:
+          type: boolean
+        chat_open:
+          type: boolean
+        actions:
+          type: array
+          items:
+            "$ref": "#/components/schemas/booking_event"
+        review:
+          type: object
+          nullable: true
+          properties:
+            rating:
+              type: integer
+            body:
+              type: string
+              nullable: true
+            created_at:
+              type: string
+        dispute:
+          type: object
+          nullable: true
+          properties:
+            id:
+              type: string
+            category:
+              type: string
+            description:
+              type: string
+            status:
+              type: string
+              enum:
+              - open
+              - resolved
+            resolution:
+              type: string
+              nullable: true
+            created_at:
+              type: string
+            resolved_at:
+              type: string
+              nullable: true
         address:
           "$ref": "#/components/schemas/booking_address"
+    message:
+      type: object
+      required:
+      - id
+      - sender_role
+      - body
+      - created_at
+      properties:
+        id:
+          type: string
+        sender_role:
+          type: string
+          enum:
+          - customer
+          - worker
+        sender_name:
+          type: string
+          nullable: true
+        body:
+          type: string
+        created_at:
+          type: string
+    admin_booking_summary:
+      type: object
+      required:
+      - id
+      - status
+      - kind
+      - category
+      - approved_total
+      - confirmed_at
+      properties:
+        id:
+          type: string
+        status:
+          "$ref": "#/components/schemas/booking_status"
+        kind:
+          "$ref": "#/components/schemas/quotation_kind"
+        category:
+          type: string
+        locality:
+          type: string
+          nullable: true
+        customer_name:
+          type: string
+          nullable: true
+        worker_name:
+          type: string
+          nullable: true
+        approved_total:
+          "$ref": "#/components/schemas/money"
+        confirmed_at:
+          type: string
+        scheduled_at:
+          type: string
+          nullable: true
+        updated_at:
+          type: string
+    admin_booking:
+      allOf:
+      - "$ref": "#/components/schemas/booking"
+      - type: object
+        required:
+        - customer
+        - worker
+        - messages
+        properties:
+          customer:
+            type: object
+            properties:
+              id:
+                type: string
+              name:
+                type: string
+                nullable: true
+              phone:
+                type: string
+          worker:
+            type: object
+            properties:
+              id:
+                type: string
+              name:
+                type: string
+                nullable: true
+              phone:
+                type: string
+          locality:
+            type: string
+            nullable: true
+          messages:
+            type: array
+            items:
+              "$ref": "#/components/schemas/message"
+    admin_dispute:
+      type: object
+      required:
+      - id
+      - category
+      - description
+      - status
+      - booking_id
+      - booking_status
+      - created_at
+      properties:
+        id:
+          type: string
+        category:
+          type: string
+        description:
+          type: string
+        status:
+          type: string
+          enum:
+          - open
+          - resolved
+        resolution:
+          type: string
+          nullable: true
+        booking_id:
+          type: string
+        booking_status:
+          "$ref": "#/components/schemas/booking_status"
+        approved_total:
+          "$ref": "#/components/schemas/money"
+        customer_name:
+          type: string
+          nullable: true
+        worker_name:
+          type: string
+          nullable: true
+        created_at:
+          type: string
+        resolved_at:
+          type: string
+          nullable: true
     customer_booking:
       allOf:
       - "$ref": "#/components/schemas/booking"
       - type: object
         required:
         - worker
+        - can_review
+        - can_dispute
         properties:
           worker:
             "$ref": "#/components/schemas/worker_card"
+          can_review:
+            type: boolean
+          can_dispute:
+            type: boolean
     worker_booking:
       allOf:
       - "$ref": "#/components/schemas/booking"
@@ -1140,6 +1421,8 @@ components:
         - answers
         - urgency
         - photos
+        - currency
+        - tax_rate_bps
         properties:
           customer:
             type: object
@@ -1168,6 +1451,10 @@ components:
             type: array
             items:
               "$ref": "#/components/schemas/request_photo"
+          currency:
+            type: string
+          tax_rate_bps:
+            type: integer
     notification:
       type: object
       required:
@@ -1682,6 +1969,580 @@ paths:
                       type: string
                     locale:
                       type: string
+  "/api/v1/worker/bookings/{id}/schedule":
+    parameters:
+    - name: id
+      in: path
+      schema:
+        type: string
+      required: true
+    post:
+      summary: Set or change the visit time
+      tags:
+      - Worker bookings
+      security:
+      - bearer: []
+      parameters:
+      - name: Authorization
+        in: header
+        schema:
+          type: string
+      responses:
+        '200':
+          description: done
+        '409':
+          description: not possible in the booking's current status
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                scheduled_at:
+                  type: string
+  "/api/v1/worker/bookings/{id}/check_in":
+    parameters:
+    - name: id
+      in: path
+      schema:
+        type: string
+      required: true
+    post:
+      summary: Arrived for the inspection
+      tags:
+      - Worker bookings
+      security:
+      - bearer: []
+      parameters:
+      - name: Authorization
+        in: header
+        schema:
+          type: string
+      responses:
+        '200':
+          description: done
+        '409':
+          description: not possible in the booking's current status
+      requestBody:
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/quotation_input"
+  "/api/v1/worker/bookings/{id}/start":
+    parameters:
+    - name: id
+      in: path
+      schema:
+        type: string
+      required: true
+    post:
+      summary: Start the work
+      tags:
+      - Worker bookings
+      security:
+      - bearer: []
+      parameters:
+      - name: Authorization
+        in: header
+        schema:
+          type: string
+      responses:
+        '200':
+          description: done
+        '409':
+          description: not possible in the booking's current status
+      requestBody:
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/quotation_input"
+  "/api/v1/worker/bookings/{id}/change_orders":
+    parameters:
+    - name: id
+      in: path
+      schema:
+        type: string
+      required: true
+    post:
+      summary: Ask for extra charges (needs the customer's approval)
+      tags:
+      - Worker bookings
+      security:
+      - bearer: []
+      parameters:
+      - name: Authorization
+        in: header
+        schema:
+          type: string
+      responses:
+        '200':
+          description: done
+        '409':
+          description: not possible in the booking's current status
+      requestBody:
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/quotation_input"
+  "/api/v1/worker/bookings/{id}/complete":
+    parameters:
+    - name: id
+      in: path
+      schema:
+        type: string
+      required: true
+    post:
+      summary: Mark the work done
+      tags:
+      - Worker bookings
+      security:
+      - bearer: []
+      parameters:
+      - name: Authorization
+        in: header
+        schema:
+          type: string
+      responses:
+        '200':
+          description: done
+        '409':
+          description: not possible in the booking's current status
+      requestBody:
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/quotation_input"
+  "/api/v1/worker/bookings/{id}/cancel":
+    parameters:
+    - name: id
+      in: path
+      schema:
+        type: string
+      required: true
+    post:
+      summary: Cancel before the work starts
+      tags:
+      - Worker bookings
+      security:
+      - bearer: []
+      parameters:
+      - name: Authorization
+        in: header
+        schema:
+          type: string
+      responses:
+        '200':
+          description: done
+        '409':
+          description: not possible in the booking's current status
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                reason:
+                  type: string
+  "/api/v1/worker/bookings/{id}/final_quotation":
+    parameters:
+    - name: id
+      in: path
+      schema:
+        type: string
+      required: true
+    post:
+      summary: Send the final price after an inspection
+      tags:
+      - Worker bookings
+      security:
+      - bearer: []
+      parameters:
+      - name: Authorization
+        in: header
+        schema:
+          type: string
+      responses:
+        '200':
+          description: waiting for the customer's approval
+      requestBody:
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/quotation_input"
+  "/api/v1/worker/bookings/{id}/messages":
+    parameters:
+    - name: id
+      in: path
+      schema:
+        type: string
+      required: true
+    get:
+      summary: Chat messages
+      tags:
+      - Booking chat
+      security:
+      - bearer: []
+      parameters:
+      - name: Authorization
+        in: header
+        schema:
+          type: string
+      responses:
+        '200':
+          description: ok
+    post:
+      summary: Send a chat message (open until 48 h after completion)
+      tags:
+      - Booking chat
+      security:
+      - bearer: []
+      parameters:
+      - name: Authorization
+        in: header
+        schema:
+          type: string
+      responses:
+        '201':
+          description: sent
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - body
+              properties:
+                body:
+                  type: string
+  "/api/v1/worker/reviews":
+    get:
+      summary: Reviews customers left (newest first)
+      tags:
+      - Worker bookings
+      security:
+      - bearer: []
+      parameters:
+      - name: Authorization
+        in: header
+        schema:
+          type: string
+      responses:
+        '200':
+          description: ok
+  "/api/v1/customer/bookings/{id}/approvals":
+    parameters:
+    - name: id
+      in: path
+      schema:
+        type: string
+      required: true
+    post:
+      summary: Approve or reject the price waiting for me (final price or extra charges)
+      tags:
+      - Customer bookings
+      security:
+      - bearer: []
+      parameters:
+      - name: Authorization
+        in: header
+        schema:
+          type: string
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: decided
+        '409':
+          description: that revision isn't the one waiting
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - revision_id
+              - decision
+              properties:
+                revision_id:
+                  type: string
+                decision:
+                  type: string
+                  enum:
+                  - approved
+                  - rejected
+  "/api/v1/customer/bookings/{id}/cancel":
+    parameters:
+    - name: id
+      in: path
+      schema:
+        type: string
+      required: true
+    post:
+      summary: Cancel before the work starts
+      tags:
+      - Customer bookings
+      security:
+      - bearer: []
+      parameters:
+      - name: Authorization
+        in: header
+        schema:
+          type: string
+      responses:
+        '200':
+          description: cancelled
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                reason:
+                  type: string
+  "/api/v1/customer/bookings/{id}/review":
+    parameters:
+    - name: id
+      in: path
+      schema:
+        type: string
+      required: true
+    post:
+      summary: Rate the worker (once, after completion)
+      tags:
+      - Customer bookings
+      security:
+      - bearer: []
+      parameters:
+      - name: Authorization
+        in: header
+        schema:
+          type: string
+      responses:
+        '201':
+          description: reviewed
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - rating
+              properties:
+                rating:
+                  type: integer
+                  minimum: 1
+                  maximum: 5
+                body:
+                  type: string
+  "/api/v1/customer/bookings/{id}/disputes":
+    parameters:
+    - name: id
+      in: path
+      schema:
+        type: string
+      required: true
+    post:
+      summary: Report a problem with finished work (within 7 days)
+      tags:
+      - Customer bookings
+      security:
+      - bearer: []
+      parameters:
+      - name: Authorization
+        in: header
+        schema:
+          type: string
+      responses:
+        '201':
+          description: opened
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - category
+              - description
+              properties:
+                category:
+                  type: string
+                  enum:
+                  - no_show
+                  - quality
+                  - overcharge
+                  - damage
+                  - behaviour
+                  - other
+                description:
+                  type: string
+  "/api/v1/customer/bookings/{id}/messages":
+    parameters:
+    - name: id
+      in: path
+      schema:
+        type: string
+      required: true
+    post:
+      summary: Send a chat message
+      tags:
+      - Booking chat
+      security:
+      - bearer: []
+      parameters:
+      - name: Authorization
+        in: header
+        schema:
+          type: string
+      responses:
+        '201':
+          description: sent
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - body
+              properties:
+                body:
+                  type: string
+  "/api/v1/admin/bookings":
+    get:
+      summary: 'Bookings (filter[attention]=true: unscheduled, late, waiting on approval,
+        disputed)'
+      tags:
+      - Admin bookings
+      security:
+      - bearer: []
+      parameters:
+      - name: Authorization
+        in: header
+        schema:
+          type: string
+      - name: filter[status]
+        in: query
+        required: false
+        schema:
+          "$ref": "#/components/schemas/booking_status"
+      - name: filter[attention]
+        in: query
+        required: false
+        schema:
+          type: string
+          enum:
+          - 'true'
+      responses:
+        '200':
+          description: ok
+  "/api/v1/admin/bookings/{id}":
+    parameters:
+    - name: id
+      in: path
+      schema:
+        type: string
+      required: true
+    get:
+      summary: One booking with history, approvals, chat and dispute
+      tags:
+      - Admin bookings
+      security:
+      - bearer: []
+      parameters:
+      - name: Authorization
+        in: header
+        schema:
+          type: string
+      responses:
+        '200':
+          description: ok
+  "/api/v1/admin/bookings/{id}/cancel":
+    parameters:
+    - name: id
+      in: path
+      schema:
+        type: string
+      required: true
+    post:
+      summary: Cancel a booking (reason required, audited)
+      tags:
+      - Admin bookings
+      security:
+      - bearer: []
+      parameters:
+      - name: Authorization
+        in: header
+        schema:
+          type: string
+      responses:
+        '200':
+          description: cancelled
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - reason
+              properties:
+                reason:
+                  type: string
+  "/api/v1/admin/disputes":
+    get:
+      summary: 'Disputes (open: oldest first)'
+      tags:
+      - Admin bookings
+      security:
+      - bearer: []
+      parameters:
+      - name: Authorization
+        in: header
+        schema:
+          type: string
+      - name: filter[status]
+        in: query
+        required: false
+        schema:
+          type: string
+          enum:
+          - open
+          - resolved
+      responses:
+        '200':
+          description: ok
+  "/api/v1/admin/disputes/{id}/resolve":
+    parameters:
+    - name: id
+      in: path
+      schema:
+        type: string
+      required: true
+    post:
+      summary: Resolve a dispute (resolution required, audited)
+      tags:
+      - Admin bookings
+      security:
+      - bearer: []
+      parameters:
+      - name: Authorization
+        in: header
+        schema:
+          type: string
+      responses:
+        '200':
+          description: resolved
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - resolution
+              properties:
+                resolution:
+                  type: string
   "/api/v1/customer/addresses":
     get:
       summary: Saved addresses (default first)

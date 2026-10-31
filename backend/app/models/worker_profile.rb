@@ -17,6 +17,7 @@ class WorkerProfile < ApplicationRecord
   has_many :invitations, class_name: "RequestInvitation", dependent: :restrict_with_error
   has_many :quotations, dependent: :restrict_with_error
   has_many :bookings, dependent: :restrict_with_error
+  has_many :reviews, dependent: :restrict_with_error
   has_one_attached :photo
 
   attachment_rules :photo, types: AttachmentRules::IMAGE_TYPES, max_size: 5.megabytes
