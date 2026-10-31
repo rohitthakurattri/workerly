@@ -24,5 +24,19 @@ module Admin
           viewed_at: i.viewed_at&.iso8601, declined_at: i.declined_at&.iso8601, decline_reason: i.decline_reason }
       end
     end
+    # Every quote with its full price history, including withdrawn ones.
+    attribute(:quotations) do |r|
+      r.quotations.includes(worker_profile: :user, revisions: :items).order(:id).map do |q|
+        { id: q.public_id, worker_id: q.worker_profile.public_id, worker_name: q.worker_profile.user.name, kind: q.kind,
+          status: q.effective_status, current_version: q.current_version, valid_until: q.valid_until.iso8601,
+          decline_reason: q.decline_reason, accepted_at: q.accepted_at&.iso8601, withdrawn_at: q.withdrawn_at&.iso8601,
+          revisions: q.revisions.map { |rev| QuotationRevisionResource.new(rev).to_h } }
+      end
+    end
+    attribute(:booking) do |r|
+      b = r.active_booking
+      b && { id: b.public_id, status: b.status, kind: b.kind, worker_id: b.worker_profile.public_id,
+             approved_total: Shared::Money.to_h(b.approved_total_minor, b.currency_code), confirmed_at: b.confirmed_at.iso8601 }
+    end
   end
 end

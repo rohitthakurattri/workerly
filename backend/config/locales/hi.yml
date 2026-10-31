@@ -9,6 +9,10 @@ hi:
     request_locked: "यह अनुरोध भेजा जा चुका है और अब बदला नहीं जा सकता।"
     too_many_photos: "आप अधिकतम 6 फ़ोटो जोड़ सकते हैं।"
     ai_unavailable: "अभी सुझाव उपलब्ध नहीं हैं। कृपया सेवा स्वयं चुनें।"
+    quotation_expired: "यह कोटेशन समाप्त हो गया है।"
+    quotation_changed: "कारीगर ने अभी यह कोटेशन बदला है। कृपया नई कीमत देखें।"
+    request_already_booked: "आप इस अनुरोध के लिए पहले ही कारीगर बुक कर चुके हैं।"
+    quote_limit_reached: "इस काम पर पहले से अधिकतम कोटेशन आ चुके हैं।"
   notifications:
     lead_new:
       title: "नया काम: %{category}"
@@ -19,3 +23,16 @@ hi:
         other: "आपका अनुरोध पास के %{count} कारीगरों को भेजा गया"
     request_unmatched:
       title: "अभी पास में कोई कारीगर उपलब्ध नहीं है। हमारी टीम इसे देखेगी।"
+    quote_new:
+      title: "नया कोटेशन: %{amount}"
+      body: "%{worker} ने आपके %{category} अनुरोध के लिए कोटेशन भेजा।"
+    quote_revised:
+      title: "कोटेशन बदला गया: %{amount}"
+      body: "%{worker} ने आपके %{category} अनुरोध का कोटेशन बदला।"
+    quote_accepted:
+      title: "आपको काम मिला: %{category}"
+      body: "%{locality} में। पता और ग्राहक का नंबर देखने के लिए खोलें।"
+    quote_declined:
+      title: "आपका %{category} कोटेशन अस्वीकार हुआ"
+    quote_lost:
+      title: "ग्राहक ने %{category} के लिए दूसरा कारीगर चुना"

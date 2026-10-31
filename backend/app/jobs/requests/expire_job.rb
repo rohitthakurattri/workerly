@@ -1,6 +1,7 @@
 module Requests
   # Every 5 minutes (config/schedule.yml): open/quoting requests past expires_at become expired.
-  # Phase 5 keeps requests with an accepted quote out of this (they are booked by then).
+  # Booked requests are out of scope (their status is no longer quotable). Open quotes expire
+  # with their request, and quotes past their own valid_until are swept too.
   class ExpireJob < ApplicationJob
     queue_as :default
 
@@ -11,9 +12,11 @@ module Requests
           next false unless request.cancellable? && request.expires_at <= now
 
           request.update!(status: "expired")
+          Quotations::CloseForRequest.call(request, now:)
         end
         Matching::CloseLeads.call(request) if expired
       end
+      Quotation.where(status: "submitted").where(valid_until: ..now).update_all(status: "expired", updated_at: now)
     end
   end
 end

@@ -15,6 +15,8 @@ class ServiceRequestResource
   attribute(:cancel_reason) { |r| r.cancel_reason }
   attribute(:invited_count) { |r| r.invited_count }
   attribute(:matched_at) { |r| r.matched_at&.iso8601 }
+  attribute(:quotes_count) { |r| r.draft? ? 0 : r.quotations.live.count }
+  attribute(:booking_id) { |r| r.booked? || r.fulfilled? ? r.active_booking&.public_id : nil }
   attribute(:created_at) { |r| r.created_at.iso8601 }
   attribute(:submitted_at) { |r| r.submitted_at&.iso8601 }
   attribute(:expires_at) { |r| r.expires_at&.iso8601 }

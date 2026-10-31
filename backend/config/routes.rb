@@ -44,7 +44,15 @@ Rails.application.routes.draw do
           end
           resource :triage, only: :create
           resources :attachments, only: %i[create destroy]
+          resources :quotations, only: :index
         end
+        resources :quotations, only: :show do
+          member do
+            post :accept
+            post :decline
+          end
+        end
+        resources :bookings, only: %i[index show]
       end
 
       namespace :worker do
@@ -59,7 +67,12 @@ Rails.application.routes.draw do
         resources :documents, only: %i[index create destroy]
         resources :leads, only: %i[index show] do
           post :decline, on: :member
+          resources :quotations, only: :create
         end
+        resources :quotations, only: %i[index show update] do
+          post :withdraw, on: :member
+        end
+        resources :bookings, only: %i[index show]
       end
 
       namespace :admin do

@@ -9,6 +9,7 @@ module Admin
     attribute(:locality) { |r| r.address_snapshot["locality"] }
     attribute(:customer) { |r| { name: r.customer.name, phone: r.customer.phone_e164 } }
     attribute(:submitted_at) { |r| r.submitted_at.iso8601 }
+    attribute(:quotes_count) { |r| r.quotations.live.count }
     attribute(:matched_at) { |r| r.matched_at&.iso8601 }
     attribute(:expires_at) { |r| r.expires_at.iso8601 }
   end

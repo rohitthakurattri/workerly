@@ -124,7 +124,7 @@ RSpec.configure do |config|
                           alternatives: { type: :array, items: { "$ref" => "#/components/schemas/category_brief" } } }
           },
           service_request: {
-            type: :object, required: %w[id status answers safety_flag urgency photos missing cancellable invited_count created_at],
+            type: :object, required: %w[id status answers safety_flag urgency photos missing cancellable invited_count quotes_count created_at],
             properties: {
               id: { type: :string }, status: { "$ref" => "#/components/schemas/request_status" },
               description: { type: :string, nullable: true },
@@ -140,6 +140,7 @@ RSpec.configure do |config|
               missing: { type: :array, items: { type: :string, enum: %w[description category address] } },
               cancellable: { type: :boolean }, cancel_reason: { type: :string, nullable: true },
               invited_count: { type: :integer }, matched_at: { type: :string, nullable: true },
+              quotes_count: { type: :integer }, booking_id: { type: :string, nullable: true },
               created_at: { type: :string }, submitted_at: { type: :string, nullable: true },
               expires_at: { type: :string, nullable: true }, cancelled_at: { type: :string, nullable: true }
             }
@@ -154,10 +155,15 @@ RSpec.configure do |config|
                           submitted_at: { type: :string, nullable: true }, expires_at: { type: :string, nullable: true } }
           },
           lead: {
-            type: :object, required: %w[id status category description answers urgency safety_flag locality city distance_band photos invited_at expires_at],
+            type: :object, required: %w[id status category description answers urgency safety_flag locality city distance_band photos invited_at expires_at
+                                        currency quotes_count quotes_full],
             properties: {
-              id: { type: :string }, status: { type: :string, enum: %w[new viewed declined] },
-              category: { "$ref" => "#/components/schemas/category_brief" },
+              id: { type: :string }, status: { type: :string, enum: %w[new viewed quoted declined] },
+              category: { type: :object, required: %w[slug name inspection_allowed tax_rate_bps],
+                          properties: { slug: { type: :string }, name: { type: :string }, icon: { type: :string, nullable: true },
+                                        inspection_allowed: { type: :boolean }, tax_rate_bps: { type: :integer } } },
+              currency: { type: :string }, quotes_count: { type: :integer }, quotes_full: { type: :boolean },
+              quotation: { allOf: [ { "$ref" => "#/components/schemas/worker_quotation" } ], nullable: true },
               description: { type: :string, nullable: true }, ai_summary: { type: :string, nullable: true },
               answers: { type: :array, items: { type: :object, required: %w[question answer], properties: { question: { type: :string }, answer: { type: :string } } } },
               urgency: { "$ref" => "#/components/schemas/urgency" }, safety_flag: { type: :boolean },
@@ -168,6 +174,95 @@ RSpec.configure do |config|
               invited_at: { type: :string }, expires_at: { type: :string }
             }
           },
+          money: { type: :object, required: %w[minor currency], properties: { minor: { type: :integer }, currency: { type: :string } } },
+          quotation_kind: { type: :string, enum: %w[fixed inspection] },
+          quotation_status: { type: :string, enum: %w[submitted accepted declined withdrawn expired] },
+          quotation_item: {
+            type: :object, required: %w[type description quantity unit unit_price amount],
+            properties: { type: { type: :string, enum: %w[labour material transport inspection other] }, description: { type: :string },
+                          brand: { type: :string, nullable: true }, quantity: { type: :number },
+                          unit: { type: :string, enum: %w[job item hour visit metre sq_ft kg litre] },
+                          unit_price: { "$ref" => "#/components/schemas/money" }, amount: { "$ref" => "#/components/schemas/money" },
+                          condition: { type: :string, nullable: true, enum: [ "new", "refurbished", "used", nil ] },
+                          warranty_days: { type: :integer, nullable: true } }
+          },
+          quotation_revision: {
+            type: :object, required: %w[id version stage subtotal tax_rate_bps tax total items created_at],
+            properties: { id: { type: :string }, version: { type: :integer },
+                          stage: { type: :string, enum: %w[initial inspection_fee final change_order] },
+                          subtotal: { "$ref" => "#/components/schemas/money" }, tax_rate_bps: { type: :integer },
+                          tax: { "$ref" => "#/components/schemas/money" }, total: { "$ref" => "#/components/schemas/money" },
+                          notes: { type: :string, nullable: true }, estimated_minutes: { type: :integer, nullable: true },
+                          items: { type: :array, items: { "$ref" => "#/components/schemas/quotation_item" } }, created_at: { type: :string } }
+          },
+          quotation_input: {
+            type: :object, required: %w[kind],
+            properties: { kind: { "$ref" => "#/components/schemas/quotation_kind" },
+                          items: { type: :array, items: { type: :object, required: %w[type description quantity unit unit_price_minor],
+                            properties: { type: { type: :string }, description: { type: :string }, brand: { type: :string },
+                                          quantity: { type: :number }, unit: { type: :string }, unit_price_minor: { type: :integer },
+                                          condition: { type: :string }, warranty_days: { type: :integer } } } },
+                          inspection_fee_minor: { type: :integer }, notes: { type: :string }, estimated_minutes: { type: :integer },
+                          valid_until: { type: :string } }
+          },
+          worker_card: {
+            type: :object, required: %w[id name rating_count verified jobs_done],
+            properties: { id: { type: :string }, name: { type: :string, nullable: true }, photo: { "$ref" => "#/components/schemas/file" },
+                          rating_avg: { type: :number, nullable: true }, rating_count: { type: :integer },
+                          experience_years: { type: :integer, nullable: true }, verified: { type: :boolean }, jobs_done: { type: :integer },
+                          phone: { type: :string } }
+          },
+          quotation: {
+            type: :object, required: %w[id kind status current_version valid_until submitted_at revised revision worker distance_band],
+            properties: { id: { type: :string }, kind: { "$ref" => "#/components/schemas/quotation_kind" },
+                          status: { "$ref" => "#/components/schemas/quotation_status" }, current_version: { type: :integer },
+                          valid_until: { type: :string }, submitted_at: { type: :string }, revised: { type: :boolean },
+                          revision: { "$ref" => "#/components/schemas/quotation_revision" },
+                          worker: { "$ref" => "#/components/schemas/worker_card" },
+                          distance_band: { type: :string, enum: %w[under_1km 1_3km 3_5km 5_10km over_10km] },
+                          booking_id: { type: :string, nullable: true }, decline_reason: { type: :string, nullable: true },
+                          revisions: { type: :array, items: { type: :object, required: %w[version total created_at],
+                            properties: { version: { type: :integer }, total: { "$ref" => "#/components/schemas/money" }, created_at: { type: :string } } } } }
+          },
+          worker_quotation: {
+            type: :object, required: %w[id lead_id kind status current_version valid_until submitted_at revision category locality editable],
+            properties: { id: { type: :string }, lead_id: { type: :string }, kind: { "$ref" => "#/components/schemas/quotation_kind" },
+                          status: { "$ref" => "#/components/schemas/quotation_status" }, current_version: { type: :integer },
+                          valid_until: { type: :string }, submitted_at: { type: :string },
+                          revision: { "$ref" => "#/components/schemas/quotation_revision" },
+                          category: { "$ref" => "#/components/schemas/category_brief" }, locality: { type: :string },
+                          editable: { type: :boolean }, booking_id: { type: :string, nullable: true },
+                          decline_reason: { type: :string, nullable: true } }
+          },
+          booking_status: { type: :string, enum: %w[confirmed inspection_scheduled inspecting awaiting_final_approval closed_after_inspection
+                                                    scheduled in_progress awaiting_change_approval completed paid cancelled rejected disputed refunded] },
+          booking_address: {
+            type: :object, nullable: true,
+            properties: { label: { type: :string, nullable: true }, line1: { type: :string }, line2: { type: :string, nullable: true },
+                          landmark: { type: :string, nullable: true }, locality: { type: :string }, pincode: { type: :string },
+                          city: { type: :string }, location: { "$ref" => "#/components/schemas/lat_lng" } }
+          },
+          booking: {
+            type: :object, required: %w[id status kind request_id category approved_total revision quotation_id confirmed_at],
+            properties: { id: { type: :string }, status: { "$ref" => "#/components/schemas/booking_status" },
+                          kind: { "$ref" => "#/components/schemas/quotation_kind" }, request_id: { type: :string },
+                          category: { "$ref" => "#/components/schemas/category_brief" }, approved_total: { "$ref" => "#/components/schemas/money" },
+                          revision: { "$ref" => "#/components/schemas/quotation_revision" }, quotation_id: { type: :string },
+                          preferred_from: { type: :string, nullable: true }, preferred_to: { type: :string, nullable: true },
+                          confirmed_at: { type: :string }, address: { "$ref" => "#/components/schemas/booking_address" } }
+          },
+          customer_booking: {
+            allOf: [ { "$ref" => "#/components/schemas/booking" },
+                     { type: :object, required: %w[worker], properties: { worker: { "$ref" => "#/components/schemas/worker_card" } } } ]
+          },
+          worker_booking: {
+            allOf: [ { "$ref" => "#/components/schemas/booking" },
+                     { type: :object, required: %w[answers urgency photos],
+                       properties: { customer: { type: :object, nullable: true, properties: { name: { type: :string, nullable: true }, phone: { type: :string } } },
+                                     description: { type: :string, nullable: true }, urgency: { "$ref" => "#/components/schemas/urgency" },
+                                     answers: { type: :array, items: { type: :object, properties: { question: { type: :string }, answer: { type: :string } } } },
+                                     photos: { type: :array, items: { "$ref" => "#/components/schemas/request_photo" } } } } ]
+          },
           notification: {
             type: :object, required: %w[id kind title read created_at],
             properties: { id: { type: :string }, kind: { type: :string }, title: { type: :string }, body: { type: :string, nullable: true },
@@ -177,6 +272,7 @@ RSpec.configure do |config|
             type: :object, required: %w[id status category city invited_count submitted_at],
             properties: { id: { type: :string }, status: { "$ref" => "#/components/schemas/request_status" },
                           urgency: { "$ref" => "#/components/schemas/urgency" }, invited_count: { type: :integer }, safety_flag: { type: :boolean },
+                          quotes_count: { type: :integer },
                           category: { type: :string }, city: { type: :string }, locality: { type: :string, nullable: true },
                           customer: { type: :object, properties: { name: { type: :string, nullable: true }, phone: { type: :string } } },
                           submitted_at: { type: :string }, matched_at: { type: :string, nullable: true }, expires_at: { type: :string } }
@@ -201,7 +297,17 @@ RSpec.configure do |config|
                               worker_name: { type: :string, nullable: true }, notified_at: { type: :string, nullable: true },
                               notified_via: { type: :string, nullable: true, enum: [ "push", "sms", "none", nil ] },
                               viewed_at: { type: :string, nullable: true }, declined_at: { type: :string, nullable: true },
-                              decline_reason: { type: :string, nullable: true } } } }
+                              decline_reason: { type: :string, nullable: true } } } },
+              quotations: { type: :array, items: { type: :object, required: %w[id worker_id kind status current_version revisions],
+                properties: { id: { type: :string }, worker_id: { type: :string }, worker_name: { type: :string, nullable: true },
+                              kind: { "$ref" => "#/components/schemas/quotation_kind" }, status: { "$ref" => "#/components/schemas/quotation_status" },
+                              current_version: { type: :integer }, valid_until: { type: :string }, decline_reason: { type: :string, nullable: true },
+                              accepted_at: { type: :string, nullable: true }, withdrawn_at: { type: :string, nullable: true },
+                              revisions: { type: :array, items: { "$ref" => "#/components/schemas/quotation_revision" } } } } },
+              booking: { type: :object, nullable: true,
+                         properties: { id: { type: :string }, status: { "$ref" => "#/components/schemas/booking_status" },
+                                       kind: { "$ref" => "#/components/schemas/quotation_kind" }, worker_id: { type: :string },
+                                       approved_total: { "$ref" => "#/components/schemas/money" }, confirmed_at: { type: :string } } }
             }
           },
           page_meta: { type: :object, properties: { next_cursor: { type: :string, nullable: true } } },

@@ -1,6 +1,9 @@
 <script setup lang="ts">
-import { onBeforeUnmount, onMounted, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import type { Quotation } from '~/types/models'
 import { ApiError } from '~/utils/api-error'
+import { formatMoney } from '~/utils/money'
+import { sortQuotes, type QuoteSort } from '~/utils/quotes'
 
 definePageMeta({ middleware: ['role'], roles: ['customer'] })
 
@@ -14,6 +17,35 @@ const notFound = ref(false)
 const cancelling = ref(false)
 const confirmCancel = ref(false)
 const reason = ref('')
+
+// Quotes: loaded with the request, then kept fresh over RequestChannel.
+const { list: listQuotes, live } = useQuotations()
+const quotes = ref<Quotation[] | null>(null)
+const sortBy = ref<QuoteSort>('price')
+const view = ref<'cards' | 'table'>('cards')
+const sorted = computed(() => sortQuotes(quotes.value ?? [], sortBy.value))
+const accepted = computed(() => quotes.value?.find(q => q.status === 'accepted'))
+let stopLive = () => {}
+
+async function refreshQuotes(announce?: string) {
+  if (!request.value) return
+  quotes.value = await listQuotes(request.value.id)
+  const q = announce && quotes.value.find(x => x.id === announce)
+  if (q) toast.show(t('compare.arrived', { amount: formatMoney(q.revision.total) }), 'info')
+}
+
+function watchQuotes() {
+  const r = request.value
+  if (!r || !['open', 'quoting', 'booked'].includes(r.status)) return
+  void refreshQuotes()
+  if (r.status === 'booked') return
+  stopLive = live(r.id, async (msg) => {
+    await load(r.id)
+    await refreshQuotes(msg.type === 'quote.new' ? msg.id : undefined)
+    if (msg.type === 'request.booked') stopLive()
+  }, () => void refreshQuotes())
+}
+onBeforeUnmount(() => stopLive())
 
 // Matching runs in the background right after submit; poll briefly until it has run.
 let poll: ReturnType<typeof setTimeout> | undefined
@@ -31,6 +63,7 @@ onMounted(async () => {
     const r = await load(String(route.params.id))
     if (r.status === 'draft') return navigateTo({ path: '/requests/new', query: { id: r.id } }, { replace: true })
     pollMatching()
+    watchQuotes()
   }
   catch (e) {
     if (ApiError.from(e).status === 404) notFound.value = true
@@ -82,6 +115,20 @@ const fmt = (iso?: string | null) => iso ? new Intl.DateTimeFormat(locale.value,
         </h1>
         <CustomerRequestStatusBadge :status="request.status" />
       </div>
+      <UiCard
+        v-if="request.status === 'booked' && request.booking_id"
+        class="border-success"
+      >
+        <p class="font-medium">
+          {{ t('booking.bookedWith', { name: accepted?.worker.name ?? '' }) }}
+        </p>
+        <NuxtLink
+          :to="`/bookings/${request.booking_id}`"
+          class="mt-2 inline-flex h-11 items-center rounded-[var(--radius-control)] bg-brand-700 px-4 font-medium text-white"
+        >
+          {{ t('booking.view') }}
+        </NuxtLink>
+      </UiCard>
       <UiCard v-if="request.status === 'open' || request.status === 'quoting'">
         <p class="font-medium">
           {{ t('requests.waitingTitle') }}
@@ -111,6 +158,60 @@ const fmt = (iso?: string | null) => iso ? new Intl.DateTimeFormat(locale.value,
       >
         {{ t('requests.cancelledOn', { time: fmt(request.cancelled_at) }) }}
       </p>
+      <section
+        v-if="quotes !== null && (quotes.length || request.status === 'open' || request.status === 'quoting')"
+        class="flex flex-col gap-3"
+        aria-labelledby="quotes-title"
+      >
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <h2
+            id="quotes-title"
+            class="text-lg font-semibold"
+          >
+            {{ t('compare.title') }} <span
+              v-if="quotes.length"
+              class="text-ink-muted"
+            >({{ quotes.length }})</span>
+          </h2>
+          <div
+            v-if="quotes.length > 1"
+            class="flex gap-2"
+          >
+            <UiSelect
+              v-model="sortBy"
+              class="w-36"
+              :label="t('compare.sortBy')"
+              :options="(['price', 'rating', 'distance'] as const).map(v => ({ value: v, label: t(`compare.sort.${v}`) }))"
+            />
+            <UiSelect
+              v-model="view"
+              class="w-32"
+              :label="t('compare.table')"
+              :options="[{ value: 'cards', label: t('compare.cards') }, { value: 'table', label: t('compare.table') }]"
+            />
+          </div>
+        </div>
+        <p
+          v-if="!quotes.length"
+          class="text-sm text-ink-muted"
+          data-testid="no-quotes"
+        >
+          {{ t('compare.none') }}
+        </p>
+        <CustomerQuoteCompare
+          v-else-if="view === 'table'"
+          :quotes="sorted"
+          :request-id="request.id"
+        />
+        <template v-else>
+          <CustomerQuoteCard
+            v-for="q in sorted"
+            :key="q.id"
+            :quote="q"
+            :request-id="request.id"
+          />
+        </template>
+      </section>
       <CustomerSafetyNotice v-if="request.safety_flag && request.cancellable" />
       <CustomerRequestDetails :request="request" />
       <p class="text-xs text-ink-muted">

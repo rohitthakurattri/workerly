@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_30_130100) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_31_100300) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "citext"
   enable_extension "pg_catalog.plpgsql"
@@ -115,6 +115,63 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_30_130100) do
     t.check_constraint "status::text = ANY (ARRAY['succeeded'::character varying::text, 'failed'::character varying::text])", name: "ai_analyses_status_check"
   end
 
+  create_table "booking_approvals", force: :cascade do |t|
+    t.bigint "booking_id", null: false
+    t.bigint "quotation_revision_id", null: false
+    t.string "decision", null: false
+    t.bigint "decided_by_id", null: false
+    t.inet "ip"
+    t.string "user_agent"
+    t.datetime "created_at", null: false
+    t.index ["booking_id"], name: "index_booking_approvals_on_booking_id"
+    t.index ["decided_by_id"], name: "index_booking_approvals_on_decided_by_id"
+    t.index ["quotation_revision_id"], name: "index_booking_approvals_on_quotation_revision_id", unique: true
+    t.check_constraint "decision::text = ANY (ARRAY['approved'::character varying, 'rejected'::character varying]::text[])", name: "booking_approvals_decision_check"
+  end
+
+  create_table "booking_status_histories", force: :cascade do |t|
+    t.bigint "booking_id", null: false
+    t.string "from_status"
+    t.string "to_status", null: false
+    t.bigint "actor_id"
+    t.string "actor_role"
+    t.jsonb "metadata", default: {}, null: false
+    t.datetime "created_at", null: false
+    t.index ["actor_id"], name: "index_booking_status_histories_on_actor_id"
+    t.index ["booking_id"], name: "index_booking_status_histories_on_booking_id"
+  end
+
+  create_table "bookings", force: :cascade do |t|
+    t.uuid "public_id", null: false
+    t.bigint "service_request_id", null: false
+    t.bigint "quotation_id", null: false
+    t.bigint "customer_id", null: false
+    t.bigint "worker_profile_id", null: false
+    t.string "kind", null: false
+    t.string "status", default: "confirmed", null: false
+    t.bigint "approved_total_minor", null: false
+    t.string "currency_code", limit: 3, null: false
+    t.datetime "confirmed_at", null: false
+    t.datetime "address_revealed_at"
+    t.datetime "scheduled_at"
+    t.datetime "started_at"
+    t.datetime "completed_at"
+    t.datetime "cancelled_at"
+    t.string "cancelled_by"
+    t.string "cancel_reason"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["customer_id"], name: "index_bookings_on_customer_id"
+    t.index ["public_id"], name: "index_bookings_on_public_id", unique: true
+    t.index ["quotation_id"], name: "index_bookings_on_quotation_id", unique: true
+    t.index ["service_request_id"], name: "index_bookings_one_active_per_request", unique: true, where: "((status)::text <> ALL ((ARRAY['cancelled'::character varying, 'rejected'::character varying])::text[]))"
+    t.index ["worker_profile_id", "created_at"], name: "index_bookings_on_worker_profile_id_and_created_at"
+    t.check_constraint "approved_total_minor >= 0", name: "bookings_amount_check"
+    t.check_constraint "cancelled_by IS NULL OR (cancelled_by::text = ANY (ARRAY['customer'::character varying, 'worker'::character varying, 'admin'::character varying]::text[]))", name: "bookings_cancelled_by_check"
+    t.check_constraint "kind::text = ANY (ARRAY['fixed'::character varying, 'inspection'::character varying]::text[])", name: "bookings_kind_check"
+    t.check_constraint "status::text = ANY (ARRAY['confirmed'::character varying, 'inspection_scheduled'::character varying, 'inspecting'::character varying, 'awaiting_final_approval'::character varying, 'closed_after_inspection'::character varying, 'scheduled'::character varying, 'in_progress'::character varying, 'awaiting_change_approval'::character varying, 'completed'::character varying, 'paid'::character varying, 'cancelled'::character varying, 'rejected'::character varying, 'disputed'::character varying, 'refunded'::character varying]::text[])", name: "bookings_status_check"
+  end
+
   create_table "cities", force: :cascade do |t|
     t.bigint "state_id", null: false
     t.string "slug", null: false
@@ -158,8 +215,59 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_30_130100) do
     t.index ["endpoint"], name: "index_device_subscriptions_on_endpoint", unique: true
     t.index ["public_id"], name: "index_device_subscriptions_on_public_id", unique: true
     t.index ["user_id"], name: "index_device_subscriptions_on_user_id"
-    t.check_constraint "app::text = ANY (ARRAY['customer'::character varying, 'worker'::character varying]::text[])", name: "device_subscriptions_app_check"
+    t.check_constraint "app::text = ANY (ARRAY['customer'::character varying::text, 'worker'::character varying::text])", name: "device_subscriptions_app_check"
     t.check_constraint "platform::text = 'webpush'::text", name: "device_subscriptions_platform_check"
+  end
+
+  create_table "idempotency_keys", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.string "key", null: false
+    t.string "request_fingerprint", null: false
+    t.integer "response_status"
+    t.jsonb "response_body"
+    t.datetime "completed_at"
+    t.datetime "created_at", null: false
+    t.index ["created_at"], name: "index_idempotency_keys_on_created_at"
+    t.index ["user_id", "key"], name: "index_idempotency_keys_on_user_id_and_key", unique: true
+  end
+
+  create_table "ledger_accounts", force: :cascade do |t|
+    t.string "owner_type"
+    t.bigint "owner_id"
+    t.string "kind", null: false
+    t.string "currency_code", limit: 3, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["owner_type", "owner_id", "kind", "currency_code"], name: "index_ledger_accounts_uniqueness", unique: true, nulls_not_distinct: true
+    t.check_constraint "(owner_type IS NULL) = (owner_id IS NULL)", name: "ledger_accounts_owner_check"
+    t.check_constraint "kind::text = ANY (ARRAY['worker_payable'::character varying, 'platform_revenue'::character varying, 'gateway_clearing'::character varying, 'cash_commission_receivable'::character varying, 'tax_payable'::character varying, 'customer_refunds'::character varying]::text[])", name: "ledger_accounts_kind_check"
+  end
+
+  create_table "ledger_entries", force: :cascade do |t|
+    t.bigint "ledger_transaction_id", null: false
+    t.bigint "ledger_account_id", null: false
+    t.string "direction", null: false
+    t.bigint "amount_minor", null: false
+    t.string "currency_code", limit: 3, null: false
+    t.datetime "created_at", null: false
+    t.index ["ledger_account_id", "created_at"], name: "index_ledger_entries_on_ledger_account_id_and_created_at"
+    t.index ["ledger_transaction_id"], name: "index_ledger_entries_on_ledger_transaction_id"
+    t.check_constraint "amount_minor > 0", name: "ledger_entries_amount_check"
+    t.check_constraint "direction::text = ANY (ARRAY['debit'::character varying, 'credit'::character varying]::text[])", name: "ledger_entries_direction_check"
+  end
+
+  create_table "ledger_transactions", force: :cascade do |t|
+    t.uuid "public_id", null: false
+    t.string "kind", null: false
+    t.string "idempotency_key", null: false
+    t.string "source_type"
+    t.bigint "source_id"
+    t.string "description"
+    t.datetime "posted_at", null: false
+    t.datetime "created_at", null: false
+    t.index ["idempotency_key"], name: "index_ledger_transactions_on_idempotency_key", unique: true
+    t.index ["public_id"], name: "index_ledger_transactions_on_public_id", unique: true
+    t.index ["source_type", "source_id"], name: "index_ledger_transactions_on_source_type_and_source_id"
   end
 
   create_table "notifications", force: :cascade do |t|
@@ -191,6 +299,77 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_30_130100) do
     t.datetime "created_at", null: false
     t.index ["phone_e164", "created_at"], name: "index_otp_challenges_on_phone_e164_and_created_at"
     t.check_constraint "attempts >= 0", name: "otp_challenges_attempts_check"
+  end
+
+  create_table "quotation_items", force: :cascade do |t|
+    t.bigint "quotation_revision_id", null: false
+    t.integer "position", null: false
+    t.string "item_type", null: false
+    t.string "description", null: false
+    t.string "brand"
+    t.decimal "quantity", precision: 10, scale: 3, null: false
+    t.string "unit", null: false
+    t.bigint "unit_price_minor", null: false
+    t.string "condition"
+    t.integer "warranty_days"
+    t.bigint "amount_minor", null: false
+    t.index ["quotation_revision_id", "position"], name: "index_quotation_items_on_quotation_revision_id_and_position", unique: true
+    t.index ["quotation_revision_id"], name: "index_quotation_items_on_quotation_revision_id"
+    t.check_constraint "condition IS NULL OR (condition::text = ANY (ARRAY['new'::character varying, 'refurbished'::character varying, 'used'::character varying]::text[]))", name: "quotation_items_condition_check"
+    t.check_constraint "item_type::text = ANY (ARRAY['labour'::character varying, 'material'::character varying, 'transport'::character varying, 'inspection'::character varying, 'other'::character varying]::text[])", name: "quotation_items_type_check"
+    t.check_constraint "quantity > 0::numeric", name: "quotation_items_quantity_check"
+    t.check_constraint "unit_price_minor >= 0 AND amount_minor >= 0", name: "quotation_items_price_check"
+    t.check_constraint "warranty_days IS NULL OR warranty_days >= 0 AND warranty_days <= 3650", name: "quotation_items_warranty_check"
+  end
+
+  create_table "quotation_revisions", force: :cascade do |t|
+    t.uuid "public_id", null: false
+    t.bigint "quotation_id", null: false
+    t.integer "version", null: false
+    t.string "stage", null: false
+    t.bigint "subtotal_minor", null: false
+    t.integer "tax_rate_bps", default: 0, null: false
+    t.bigint "tax_minor", default: 0, null: false
+    t.bigint "total_minor", null: false
+    t.string "currency_code", limit: 3, null: false
+    t.text "notes"
+    t.integer "estimated_minutes"
+    t.bigint "created_by_id", null: false
+    t.datetime "created_at", null: false
+    t.index ["created_by_id"], name: "index_quotation_revisions_on_created_by_id"
+    t.index ["public_id"], name: "index_quotation_revisions_on_public_id", unique: true
+    t.index ["quotation_id", "version"], name: "index_quotation_revisions_on_quotation_id_and_version", unique: true
+    t.check_constraint "estimated_minutes IS NULL OR estimated_minutes >= 1 AND estimated_minutes <= 20160", name: "quotation_revisions_estimate_check"
+    t.check_constraint "stage::text = ANY (ARRAY['initial'::character varying, 'inspection_fee'::character varying, 'final'::character varying, 'change_order'::character varying]::text[])", name: "quotation_revisions_stage_check"
+    t.check_constraint "subtotal_minor >= 0 AND tax_minor >= 0 AND total_minor = (subtotal_minor + tax_minor)", name: "quotation_revisions_totals_check"
+    t.check_constraint "tax_rate_bps >= 0 AND tax_rate_bps <= 5000", name: "quotation_revisions_tax_rate_check"
+    t.check_constraint "version > 0", name: "quotation_revisions_version_check"
+  end
+
+  create_table "quotations", force: :cascade do |t|
+    t.uuid "public_id", null: false
+    t.bigint "service_request_id", null: false
+    t.bigint "worker_profile_id", null: false
+    t.bigint "request_invitation_id", null: false
+    t.string "kind", null: false
+    t.string "status", default: "submitted", null: false
+    t.integer "current_version", default: 1, null: false
+    t.datetime "valid_until", null: false
+    t.datetime "accepted_at"
+    t.datetime "declined_at"
+    t.string "decline_reason"
+    t.datetime "withdrawn_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["public_id"], name: "index_quotations_on_public_id", unique: true
+    t.index ["request_invitation_id"], name: "index_quotations_on_request_invitation_id", unique: true
+    t.index ["service_request_id", "worker_profile_id"], name: "index_quotations_on_service_request_id_and_worker_profile_id", unique: true
+    t.index ["service_request_id"], name: "index_quotations_one_accepted_per_request", unique: true, where: "((status)::text = 'accepted'::text)"
+    t.index ["worker_profile_id", "created_at"], name: "index_quotations_on_worker_profile_id_and_created_at"
+    t.check_constraint "current_version > 0", name: "quotations_version_check"
+    t.check_constraint "kind::text = ANY (ARRAY['fixed'::character varying, 'inspection'::character varying]::text[])", name: "quotations_kind_check"
+    t.check_constraint "status::text <> 'accepted'::text OR accepted_at IS NOT NULL", name: "quotations_accepted_check"
+    t.check_constraint "status::text = ANY (ARRAY['submitted'::character varying, 'accepted'::character varying, 'declined'::character varying, 'withdrawn'::character varying, 'expired'::character varying]::text[])", name: "quotations_status_check"
   end
 
   create_table "refresh_tokens", force: :cascade do |t|
@@ -235,7 +414,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_30_130100) do
     t.index ["service_request_id", "worker_profile_id"], name: "idx_on_service_request_id_worker_profile_id_1b4062c7a1", unique: true
     t.index ["worker_profile_id", "created_at"], name: "index_request_invitations_on_worker_profile_id_and_created_at"
     t.check_constraint "distance_m >= 0", name: "request_invitations_distance_check"
-    t.check_constraint "notified_via IS NULL OR (notified_via::text = ANY (ARRAY['push'::character varying, 'sms'::character varying, 'none'::character varying]::text[]))", name: "request_invitations_notified_via_check"
+    t.check_constraint "notified_via IS NULL OR (notified_via::text = ANY (ARRAY['push'::character varying::text, 'sms'::character varying::text, 'none'::character varying::text]))", name: "request_invitations_notified_via_check"
     t.check_constraint "rank > 0", name: "request_invitations_rank_check"
   end
 
@@ -251,10 +430,12 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_30_130100) do
     t.datetime "deleted_at"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.integer "tax_rate_bps", default: 0, null: false
     t.index ["parent_id"], name: "index_service_categories_on_parent_id"
     t.index ["slug"], name: "index_service_categories_on_slug", unique: true
     t.check_constraint "name_i18n ? 'en'::text", name: "service_categories_name_en_check"
     t.check_constraint "parent_id IS NULL OR parent_id <> id", name: "service_categories_parent_check"
+    t.check_constraint "tax_rate_bps >= 0 AND tax_rate_bps <= 5000", name: "service_categories_tax_rate_check"
   end
 
   create_table "service_requests", force: :cascade do |t|
@@ -452,9 +633,27 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_30_130100) do
   add_foreign_key "admin_actions", "users", column: "admin_id"
   add_foreign_key "ai_analyses", "service_categories", column: "suggested_category_id"
   add_foreign_key "ai_analyses", "users"
+  add_foreign_key "booking_approvals", "bookings"
+  add_foreign_key "booking_approvals", "quotation_revisions"
+  add_foreign_key "booking_approvals", "users", column: "decided_by_id"
+  add_foreign_key "booking_status_histories", "bookings"
+  add_foreign_key "booking_status_histories", "users", column: "actor_id"
+  add_foreign_key "bookings", "quotations"
+  add_foreign_key "bookings", "service_requests"
+  add_foreign_key "bookings", "users", column: "customer_id"
+  add_foreign_key "bookings", "worker_profiles"
   add_foreign_key "cities", "states"
   add_foreign_key "device_subscriptions", "users"
+  add_foreign_key "idempotency_keys", "users"
+  add_foreign_key "ledger_entries", "ledger_accounts"
+  add_foreign_key "ledger_entries", "ledger_transactions"
   add_foreign_key "notifications", "users"
+  add_foreign_key "quotation_items", "quotation_revisions"
+  add_foreign_key "quotation_revisions", "quotations"
+  add_foreign_key "quotation_revisions", "users", column: "created_by_id"
+  add_foreign_key "quotations", "request_invitations"
+  add_foreign_key "quotations", "service_requests"
+  add_foreign_key "quotations", "worker_profiles"
   add_foreign_key "refresh_tokens", "user_sessions"
   add_foreign_key "request_attachments", "service_requests"
   add_foreign_key "request_invitations", "service_requests"

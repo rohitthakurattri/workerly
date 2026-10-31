@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import type { Lead } from '~/types/models'
+import { formatMoney } from '~/utils/money'
+import { quoteStatusTone } from '~/utils/quotes'
 
 defineProps<{ lead: Lead }>()
 const { t } = useI18n()
@@ -30,6 +32,10 @@ const { t } = useI18n()
           v-if="lead.status === 'new'"
           tone="info"
         >{{ t('leads.new') }}</UiBadge>
+        <UiBadge
+          v-else-if="lead.quotation"
+          :tone="quoteStatusTone(lead.quotation.status)"
+        >{{ t('leads.quoted') }} · {{ formatMoney(lead.quotation.revision.total) }}</UiBadge>
       </span>
       <span class="block truncate text-sm text-ink-muted">{{ lead.description }}</span>
       <span class="block text-xs text-ink-subtle">

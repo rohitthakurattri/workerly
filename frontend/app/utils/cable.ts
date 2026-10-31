@@ -4,7 +4,7 @@
  * (re)subscription so callers can refetch anything missed while offline.
  */
 export interface CableTicket { ticket: string, url: string }
-interface Subscription { onMessage: (msg: unknown) => void, onConfirm?: () => void }
+interface Subscription { onMessage: (msg: unknown) => void, onConfirm?: () => void, params?: Record<string, string> }
 
 export function createCable(getTicket: () => Promise<CableTicket>, WS: typeof WebSocket = WebSocket) {
   const subs = new Map<string, Subscription>()
@@ -57,7 +57,7 @@ export function createCable(getTicket: () => Promise<CableTicket>, WS: typeof We
   }
 
   function subscribe(channel: string, sub: Subscription) {
-    const identifier = JSON.stringify({ channel })
+    const identifier = JSON.stringify({ channel, ...sub.params })
     subs.set(identifier, sub)
     send('subscribe', identifier)
     return () => {

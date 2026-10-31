@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
 import type { AdminServiceRequestDetail } from '~/types/models'
+import { formatMoney } from '~/utils/money'
 import { formatIndianMobile } from '~/utils/phone'
+import { quoteStatusTone } from '~/utils/quotes'
 
 definePageMeta({ middleware: ['role'], roles: ['admin', 'support'] })
 
@@ -152,6 +154,71 @@ const km = (m: number) => (m / 1000).toFixed(1)
             <span v-else>{{ row.viewed_at ? fmt(row.viewed_at) : '–' }}</span>
           </template>
         </UiTable>
+      </UiCard>
+      <UiCard v-if="r.booking">
+        <template #title>
+          {{ t('admin.booking') }}
+        </template>
+        <dl class="grid grid-cols-2 gap-2 text-sm">
+          <dt class="text-ink-muted">
+            {{ t('admin.status') }}
+          </dt><dd>{{ r.booking.status }} · {{ r.booking.kind }}</dd>
+          <dt class="text-ink-muted">
+            {{ t('admin.approvedTotal') }}
+          </dt><dd>{{ r.booking.approved_total ? formatMoney(r.booking.approved_total) : '–' }}</dd>
+          <dt class="text-ink-muted">
+            {{ t('admin.confirmedAt') }}
+          </dt><dd>{{ fmt(r.booking.confirmed_at) }}</dd>
+        </dl>
+      </UiCard>
+      <UiCard>
+        <template #title>
+          {{ t('admin.quotes') }} ({{ r.quotations?.length ?? 0 }})
+        </template>
+        <p
+          v-if="!r.quotations?.length"
+          class="text-sm text-ink-muted"
+        >
+          {{ t('admin.noQuotes') }}
+        </p>
+        <ul
+          v-else
+          class="flex flex-col divide-y divide-border"
+        >
+          <li
+            v-for="q in r.quotations"
+            :key="q.id"
+            class="py-3"
+          >
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <NuxtLink
+                :to="`/workers/${q.worker_id}`"
+                class="font-medium text-brand-700 underline"
+              >
+                {{ q.worker_name || '—' }}
+              </NuxtLink>
+              <span class="flex items-center gap-2">
+                <UiBadge>{{ q.kind }}</UiBadge>
+                <UiBadge :tone="quoteStatusTone(q.status)">{{ q.status }}<template v-if="q.decline_reason">: {{ q.decline_reason }}</template></UiBadge>
+              </span>
+            </div>
+            <details class="mt-1">
+              <summary class="cursor-pointer text-sm text-ink-muted">
+                {{ t('admin.versions') }}: {{ q.revisions.map(v => `v${v.version} ${formatMoney(v.total)}`).join(' → ') }}
+              </summary>
+              <div
+                v-for="v in q.revisions"
+                :key="v.id"
+                class="mt-2 rounded-[var(--radius-control)] border border-border p-2"
+              >
+                <p class="mb-1 text-xs text-ink-muted">
+                  v{{ v.version }} · {{ v.stage }} · {{ fmt(v.created_at) }}
+                </p>
+                <SharedQuoteBreakdown :revision="v" />
+              </div>
+            </details>
+          </li>
+        </ul>
       </UiCard>
     </template>
   </div>

@@ -56,6 +56,20 @@ describe('createCable', () => {
     cable.close()
   })
 
+  it('puts channel params in the identifier (RequestChannel id)', async () => {
+    const cable = createCable(vi.fn().mockResolvedValue({ ticket: 't1', url: 'ws://api/cable' }), FakeSocket as unknown as typeof WebSocket)
+    const onMessage = vi.fn()
+    cable.subscribe('RequestChannel', { onMessage, params: { id: 'r1' } })
+    await flush()
+    const ws = FakeSocket.all.at(-1)!
+    ws.server({ type: 'welcome' })
+    const identifier = JSON.stringify({ channel: 'RequestChannel', id: 'r1' })
+    expect(ws.sent).toEqual([{ command: 'subscribe', identifier }])
+    ws.server({ identifier, message: { type: 'quote.new' } })
+    expect(onMessage).toHaveBeenCalledWith({ type: 'quote.new' })
+    cable.close()
+  })
+
   it('reconnects with a fresh ticket and resubscribes (so callers can catch up)', async () => {
     vi.useFakeTimers()
     const tickets = vi.fn().mockResolvedValueOnce({ ticket: 't1', url: 'ws://a' }).mockResolvedValueOnce({ ticket: 't2', url: 'ws://a' })

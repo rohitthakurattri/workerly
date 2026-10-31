@@ -2,6 +2,7 @@
 import { onBeforeUnmount, onMounted, ref } from 'vue'
 import { useAuthStore } from '~/stores/auth'
 import { ApiError } from '~/utils/api-error'
+import { formatMoney } from '~/utils/money'
 
 // Approved workers see leads here; everyone else is routed to onboarding/verification.
 definePageMeta({ middleware: ['worker-profile'] })
@@ -10,6 +11,7 @@ const auth = useAuthStore()
 const { profile, register, setAvailable } = useWorkerProfile()
 const toast = useToast()
 const { leads, load: loadLeads, live } = useLeads()
+const { jobs, loadJobs } = useQuotes()
 const { t } = useI18n()
 let stopLive = () => {}
 
@@ -52,8 +54,20 @@ async function toggleAvailable() {
 // Leads arrive live over the WebSocket; the list is refetched on every (re)connect.
 onMounted(async () => {
   if (auth.activeRole !== 'worker' || profile.value?.verification_status !== 'approved' || profile.value.suspended) return
-  await loadLeads()
-  stopLive = live(lead => toast.show(t('leads.arrived', { category: lead.category.name, locality: lead.locality }), 'info'))
+  await Promise.all([loadLeads(), loadJobs()])
+  stopLive = live(
+    lead => toast.show(t('leads.arrived', { category: lead.category.name, locality: lead.locality }), 'info'),
+    (msg, lead) => {
+      const category = lead?.category.name ?? ''
+      if (msg.status === 'accepted') {
+        toast.success(t('jobs.wonToast', { category }))
+        void loadJobs()
+      }
+      else if (msg.status === 'declined') {
+        toast.show(t('jobs.lostToast', { category }), 'info')
+      }
+    },
+  )
 })
 onBeforeUnmount(() => stopLive())
 </script>
@@ -92,6 +106,29 @@ onBeforeUnmount(() => stopLive())
           </button>
         </div>
       </UiCard>
+      <UiCard v-if="jobs?.length">
+        <template #title>
+          {{ t('jobs.title') }}
+        </template>
+        <ul class="flex flex-col gap-2">
+          <li
+            v-for="job in jobs"
+            :key="job.id"
+          >
+            <NuxtLink
+              :to="`/jobs/${job.id}`"
+              class="flex items-center justify-between gap-3 rounded-[var(--radius-card)] border border-success/40 bg-success-soft p-3"
+              data-testid="job-card"
+            >
+              <span class="min-w-0">
+                <strong class="block truncate">{{ job.category.name }}</strong>
+                <span class="block truncate text-sm text-ink-muted">{{ job.customer?.name }} · {{ job.address?.locality }}</span>
+              </span>
+              <strong class="shrink-0">{{ formatMoney(job.approved_total) }}</strong>
+            </NuxtLink>
+          </li>
+        </ul>
+      </UiCard>
       <UiCard>
         <template #title>
           {{ t('worker.leads') }}
@@ -116,6 +153,10 @@ onBeforeUnmount(() => stopLive())
           />
         </div>
       </UiCard>
+      <NuxtLink
+        to="/quotes"
+        class="text-sm text-brand-700"
+      >{{ t('quotes.nav') }} →</NuxtLink>
       <WorkerJobAlerts />
     </template>
 

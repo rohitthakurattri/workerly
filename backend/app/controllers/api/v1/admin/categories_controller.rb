@@ -34,14 +34,14 @@ module Api
         private
 
         def category_params
-          p = params.require(:category).permit(:slug, :icon, :inspection_allowed, :active, :sort, :parent,
+          p = params.require(:category).permit(:slug, :icon, :inspection_allowed, :tax_rate_bps, :active, :sort, :parent,
                                                name_i18n: %i[en hi pa], description_i18n: %i[en hi pa])
           p[:parent] = (ServiceCategory.kept.find_by!(slug: p[:parent]) if p[:parent].present?) if p.key?(:parent)
           p
         end
 
         def serialize(c)
-          c.slice(:slug, :icon, :inspection_allowed, :active, :sort, :name_i18n, :description_i18n)
+          c.slice(:slug, :icon, :inspection_allowed, :tax_rate_bps, :active, :sort, :name_i18n, :description_i18n)
            .merge(parent: c.parent&.slug)
         end
       end

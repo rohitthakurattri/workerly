@@ -63,6 +63,6 @@ New ENV: `MATCH_FANOUT`, `MAX_QUOTES_PER_REQUEST`, `LEAD_SMS_FALLBACK`, `VAPID_P
 ## 5. Not done in Phase 4
 - **Re-matching:** requests aren't offered later to workers who come online, and the radius doesn't widen when nobody matched. Support handles these via *Needs attention*. Revisit with real data.
 - **Notification centre UI:** the API exists (list, unread count, mark read); a bell and list in the apps come later.
-- **Customer live updates:** quotes arriving live is Phase 5 (`RequestChannel`).
+- **Customer live updates:** quotes arriving live is Phase 5 (`RequestChannel`) — done, see `phase-5-quotations.md`.
 - **Suspending a worker doesn't close their open socket;** the channel and leads API refuse them on the next subscribe or fetch.
 - **Full PWA service worker:** Phase 9. iPhone web push only works for installed PWAs, so SMS stays the safety net.

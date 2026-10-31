@@ -2,11 +2,13 @@
 import { onMounted, ref } from 'vue'
 import type { Lead } from '~/types/models'
 import { ApiError } from '~/utils/api-error'
+import { quoteStatusTone } from '~/utils/quotes'
 
 definePageMeta({ middleware: ['worker-profile'] })
 
 const route = useRoute()
 const { find, decline } = useLeads()
+const { withdraw } = useQuotes()
 const toast = useToast()
 const { t, locale } = useI18n()
 
@@ -15,6 +17,8 @@ const gone = ref(false)
 const declining = ref(false)
 const confirmDecline = ref(false)
 const reason = ref('')
+const confirmWithdraw = ref(false)
+const withdrawing = ref(false)
 
 onMounted(async () => {
   try {
@@ -35,6 +39,22 @@ async function doDecline() {
   }
   finally {
     declining.value = false
+  }
+}
+
+async function doWithdraw() {
+  withdrawing.value = true
+  try {
+    await withdraw(lead.value!.quotation!.id)
+    toast.success(t('leads.withdrawn'))
+    lead.value = await find(lead.value!.id)
+    confirmWithdraw.value = false
+  }
+  catch (e) {
+    toast.error(ApiError.from(e).message)
+  }
+  finally {
+    withdrawing.value = false
   }
 }
 
@@ -136,23 +156,73 @@ const fmt = (iso: string) => new Intl.DateTimeFormat(locale.value, { weekday: 's
       </UiCard>
       <p class="text-sm text-ink-muted">
         {{ t('leads.privacy') }} {{ t('leads.openUntil', { time: fmt(lead.expires_at) }) }}
+        {{ t('leads.quotesSoFar', { count: lead.quotes_count }, lead.quotes_count) }}
       </p>
-      <div class="flex flex-wrap gap-2">
-        <UiButton
-          disabled
-          :title="t('common.comingSoon')"
+      <UiCard
+        v-if="lead.quotation"
+        data-testid="my-quote"
+      >
+        <template #title>
+          <span class="flex items-center justify-between gap-2">
+            {{ t('leads.yourQuote') }}
+            <UiBadge :tone="quoteStatusTone(lead.quotation.status)">{{ t(`quoteStatus.${lead.quotation.status}`) }}</UiBadge>
+          </span>
+        </template>
+        <p class="mb-2 text-sm text-ink-muted">
+          {{ t(`quote.${lead.quotation.kind}`) }} · {{ t('quote.version', { n: lead.quotation.current_version }) }}
+          · {{ t('quote.validUntil', { time: fmt(lead.quotation.valid_until) }) }}
+        </p>
+        <SharedQuoteBreakdown :revision="lead.quotation.revision" />
+        <div
+          v-if="lead.quotation.editable"
+          class="mt-3 flex flex-wrap gap-2"
         >
-          {{ t('leads.sendQuote') }}
-        </UiButton>
-        <UiButton
-          variant="secondary"
-          @click="confirmDecline = true"
+          <UiButton @click="navigateTo(`/leads/${lead.id}/quote`)">
+            {{ t('leads.editQuote') }}
+          </UiButton>
+          <UiButton
+            variant="secondary"
+            @click="confirmWithdraw = true"
+          >
+            {{ t('leads.withdraw') }}
+          </UiButton>
+        </div>
+      </UiCard>
+      <template v-else>
+        <p
+          v-if="lead.quotes_full"
+          class="rounded-[var(--radius-card)] bg-warning-soft p-3 text-sm text-warning"
         >
-          {{ t('leads.decline') }}
-        </UiButton>
-      </div>
+          {{ t('leads.quotesFull') }}
+        </p>
+        <div class="flex flex-wrap gap-2">
+          <UiButton
+            v-if="!lead.quotes_full"
+            data-testid="start-quote"
+            @click="navigateTo(`/leads/${lead.id}/quote`)"
+          >
+            {{ t('leads.sendQuote') }}
+          </UiButton>
+          <UiButton
+            variant="secondary"
+            @click="confirmDecline = true"
+          >
+            {{ t('leads.decline') }}
+          </UiButton>
+        </div>
+      </template>
     </template>
 
+    <UiConfirmDialog
+      v-model:open="confirmWithdraw"
+      :title="t('leads.withdrawTitle')"
+      :message="t('leads.withdrawBody')"
+      :confirm-label="t('leads.withdraw')"
+      :cancel-label="t('common.cancel')"
+      :loading="withdrawing"
+      danger
+      @confirm="doWithdraw"
+    />
     <UiModal
       v-model:open="confirmDecline"
       :title="t('leads.declineTitle')"

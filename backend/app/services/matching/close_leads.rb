@@ -1,5 +1,5 @@
 module Matching
-  # Tells invited workers' open apps that a lead is gone (cancelled, expired, later: booked).
+  # Tells invited workers' open apps that a lead is gone (cancelled, expired or booked).
   module CloseLeads
     module_function
 

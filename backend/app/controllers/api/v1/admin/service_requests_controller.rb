@@ -6,7 +6,7 @@ module Api
         WAITING_AFTER = 30.minutes
 
         # GET /api/v1/admin/service_requests?filter[status]=open&filter[attention]=true&cursor=…
-        # attention: open with nobody invited, or open for 30+ minutes (no quotes yet; quotes arrive in Phase 5).
+        # attention: open with nobody invited, or open for 30+ minutes (open = no quotes yet; the first quote moves it to quoting).
         def index
           authorize [ :admin, ServiceRequest ]
           scope = policy_scope([ :admin, ServiceRequest ]).includes(:service_category, :city, :customer)

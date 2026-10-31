@@ -82,6 +82,7 @@ const fmt = (iso?: string | null) => (iso ? new Date(iso).toLocaleString('en-IN'
         { key: 'locality', label: t('admin.area') },
         { key: 'customer', label: t('admin.customer') },
         { key: 'invited_count', label: t('admin.invited'), align: 'right' },
+        { key: 'quotes_count', label: t('admin.quotes'), align: 'right' },
         { key: 'status', label: t('admin.statusLabel') },
         { key: 'submitted_at', label: t('admin.submitted') },
       ]"

@@ -5,6 +5,7 @@ class LeadPolicy < ApplicationPolicy
   def index? = can_receive_leads?
   def show? = can_receive_leads?
   def decline? = can_receive_leads?
+  def quote? = can_receive_leads?
 
   private
 

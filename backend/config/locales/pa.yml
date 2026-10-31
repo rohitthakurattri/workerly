@@ -9,3 +9,16 @@ pa:
         other: "ਤੁਹਾਡੀ ਬੇਨਤੀ ਨੇੜੇ ਦੇ %{count} ਕਾਰੀਗਰਾਂ ਨੂੰ ਭੇਜੀ ਗਈ"
     request_unmatched:
       title: "ਹੁਣੇ ਨੇੜੇ ਕੋਈ ਕਾਰੀਗਰ ਉਪਲਬਧ ਨਹੀਂ। ਸਾਡੀ ਟੀਮ ਇਸਨੂੰ ਵੇਖੇਗੀ।"
+    quote_new:
+      title: "ਨਵਾਂ ਕੋਟੇਸ਼ਨ: %{amount}"
+      body: "%{worker} ਨੇ ਤੁਹਾਡੀ %{category} ਬੇਨਤੀ ਲਈ ਕੋਟੇਸ਼ਨ ਭੇਜਿਆ।"
+    quote_revised:
+      title: "ਕੋਟੇਸ਼ਨ ਬਦਲਿਆ ਗਿਆ: %{amount}"
+      body: "%{worker} ਨੇ ਤੁਹਾਡੀ %{category} ਬੇਨਤੀ ਦਾ ਕੋਟੇਸ਼ਨ ਬਦਲਿਆ।"
+    quote_accepted:
+      title: "ਤੁਹਾਨੂੰ ਕੰਮ ਮਿਲ ਗਿਆ: %{category}"
+      body: "%{locality} ਵਿੱਚ। ਪਤਾ ਅਤੇ ਗਾਹਕ ਦਾ ਨੰਬਰ ਵੇਖਣ ਲਈ ਖੋਲ੍ਹੋ।"
+    quote_declined:
+      title: "ਤੁਹਾਡਾ %{category} ਕੋਟੇਸ਼ਨ ਨਾਮਨਜ਼ੂਰ ਹੋਇਆ"
+    quote_lost:
+      title: "ਗਾਹਕ ਨੇ %{category} ਲਈ ਕੋਈ ਹੋਰ ਕਾਰੀਗਰ ਚੁਣਿਆ"

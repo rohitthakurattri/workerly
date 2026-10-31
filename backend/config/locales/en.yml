@@ -63,6 +63,23 @@ en:
     nothing_to_analyse: "Describe the problem or add a photo first."
     ai_unavailable: "Suggestions are not available right now. Please choose the service yourself."
     ai_budget_exceeded: "You've used today's suggestions. Please choose the service yourself."
+    request_closed: "This request is no longer taking quotes."
+    lead_declined: "You declined this job."
+    own_request: "You can't quote on your own request."
+    already_quoted: "You've already quoted on this job. Edit your quote instead."
+    quote_limit_reached: "This job already has the maximum number of quotes."
+    inspection_not_allowed: "This service needs a fixed price, not an inspection visit."
+    quotation_not_editable: "This quote can't be changed any more."
+    too_many_revisions: "You've changed this quote too many times."
+    quotation_not_acceptable: "This quote can't be accepted any more."
+    quotation_expired: "This quotation has expired."
+    quotation_changed: "The worker has just changed this quote. Please check the new price."
+    request_already_booked: "You've already booked a worker for this request."
+    worker_unavailable: "This worker can't take jobs right now. Please choose another quote."
+    idempotency_key_required: "Idempotency-Key header is required."
+    idempotency_key_invalid: "Idempotency-Key must be 8–255 letters, digits or - _ . :"
+    idempotency_key_reused: "This Idempotency-Key was used for a different request."
+    idempotency_key_in_progress: "This request is still being processed."
   notifications:
     lead_new:
       title: "New job: %{category}"
@@ -74,3 +91,17 @@ en:
         other: "Your request was sent to %{count} nearby workers"
     request_unmatched:
       title: "No workers are free nearby right now. Our team will look into it."
+    quote_new:
+      title: "New quote: %{amount}"
+      body: "%{worker} sent a quote for your %{category} request."
+    quote_revised:
+      title: "Quote updated: %{amount}"
+      body: "%{worker} changed their quote for your %{category} request."
+    quote_accepted:
+      title: "You got the job: %{category}"
+      body: "In %{locality}. Open it for the address and the customer's number."
+      sms: "Workerly: your quote for %{category} in %{locality} was accepted. Open the Workerly Pro app for the address."
+    quote_declined:
+      title: "Your %{category} quote was declined"
+    quote_lost:
+      title: "The customer chose another worker for %{category}"

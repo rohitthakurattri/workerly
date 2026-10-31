@@ -7,7 +7,8 @@ module Api
         # GET /api/v1/worker/leads — requests this worker was invited to that still take quotes, newest first.
         def index
           records, meta = paginate(leads, order: { id: :desc })
-          render_data(records.map { |i| LeadResource.new(i).to_h }, meta:)
+          quote_counts = Quotation.live.where(service_request_id: records.map(&:service_request_id)).group(:service_request_id).count
+          render_data(records.map { |i| LeadResource.new(i, params: { quote_counts: }).to_h }, meta:)
         end
 
         # GET /api/v1/worker/leads/:id (the request's id). The first view is recorded (responsiveness ranking).
@@ -28,7 +29,8 @@ module Api
 
         def leads
           current_profile.invitations.live
-                         .includes(service_request: [ :service_category, :city, { attachments: { file_attachment: :blob } } ])
+                         .includes(quotation: [ :booking, { revisions: :items } ],
+                                   service_request: [ :service_category, :city, { attachments: { file_attachment: :blob } } ])
         end
 
         def find_lead

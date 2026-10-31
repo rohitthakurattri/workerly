@@ -5,7 +5,7 @@ class ServiceRequest < ApplicationRecord
   # Waiting for or receiving quotes, or booked: counts towards the customer's limit.
   ACTIVE_STATUSES = %w[open quoting booked].freeze
   CANCELLABLE_STATUSES = %w[open quoting].freeze
-  # Workers can see and (Phase 5) quote on these.
+  # Workers can see and quote on these.
   QUOTABLE_STATUSES = %w[open quoting].freeze
   URGENCIES = %w[asap today this_week flexible].freeze
   MAX_PHOTOS = 6
@@ -22,6 +22,8 @@ class ServiceRequest < ApplicationRecord
   has_many :attachments, -> { order(:created_at, :id) }, class_name: "RequestAttachment", dependent: :destroy
   has_many :ai_analyses, as: :analysable, dependent: :restrict_with_error
   has_many :invitations, -> { order(:rank) }, class_name: "RequestInvitation", dependent: :restrict_with_error
+  has_many :quotations, dependent: :restrict_with_error
+  has_many :bookings, dependent: :restrict_with_error
 
   geo_point :location
   validates :status, inclusion: { in: STATUSES }
@@ -40,6 +42,8 @@ class ServiceRequest < ApplicationRecord
   STATUSES.each { |s| define_method(:"#{s}?") { status == s } }
 
   def cancellable? = CANCELLABLE_STATUSES.include?(status)
+  def quotable?(now = Time.current) = QUOTABLE_STATUSES.include?(status) && expires_at.present? && expires_at > now
+  def active_booking = bookings.active.first
 
   def photos = attachments.select { |a| a.kind == "image" }
 

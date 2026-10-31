@@ -7,7 +7,7 @@ import { resolve } from 'node:path'
 const backend = resolve(import.meta.dirname, '../../backend')
 
 export interface Seed {
-  phones: { dual: string, admin: string, logout: string, fresh: string, new_worker: string, customer: string, pro_near: string, pro_far: string }
+  phones: { dual: string, admin: string, logout: string, fresh: string, new_worker: string, customer: string, pro_near: string, pro_far: string, pro_near2: string }
   totp_secret: string
   camera_photo: string
 }
@@ -48,6 +48,22 @@ export function totp(base32: string, at = Date.now()): string {
   const h = createHmac('sha1', key).update(counter).digest()
   const o = h[h.length - 1]! & 0xF
   return String((h.readUInt32BE(o) & 0x7FFFFFFF) % 1_000_000).padStart(6, '0')
+}
+
+/** Customer app: posts a plumbing job at Sector 70 through the request wizard (GPS pin from the context). */
+export async function postRequest(page: Page, description: string) {
+  await page.getByRole('button', { name: 'Post a job' }).click()
+  await page.getByLabel('Describe the problem').fill(description)
+  await page.getByRole('button', { name: 'Continue' }).click()
+  await page.getByRole('radio', { name: /Plumber/ }).check()
+  await page.getByRole('button', { name: 'Continue' }).click()
+  await page.getByText('Pin set. Drag it to adjust.').waitFor()
+  await page.getByLabel('House / flat number and street').fill('House 77')
+  await page.getByLabel('Sector or area').fill('Sector 70')
+  await page.getByLabel('PIN code').fill('160071')
+  await page.getByRole('button', { name: 'Save address' }).click()
+  await page.getByRole('button', { name: 'Continue' }).click()
+  await page.getByRole('button', { name: 'Send request' }).click()
 }
 
 /** Consumer OTP login on one of the apps (customer :3001 or worker :3002). */

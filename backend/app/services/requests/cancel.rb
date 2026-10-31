@@ -10,6 +10,7 @@ module Requests
         end
 
         request.update!(status: "cancelled", cancelled_at: Time.current, cancel_reason: reason.to_s.strip.presence)
+        Quotations::CloseForRequest.call(request)
       end
       Matching::CloseLeads.call(request)
       request

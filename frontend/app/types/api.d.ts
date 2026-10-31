@@ -1289,6 +1289,551 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/worker/leads/{lead_id}/quotations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The request's id */
+                lead_id: string;
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Send a quote (fixed price, or an inspection visit fee). Prices are computed by the server */
+        post: {
+            parameters: {
+                query?: never;
+                header?: {
+                    Authorization?: string;
+                };
+                path: {
+                    /** @description The request's id */
+                    lead_id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["quotation_input"];
+                };
+            };
+            responses: {
+                /** @description sent */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description already quoted, request full or closed */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description invalid lines */
+                422: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/worker/quotations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** My quotes (newest first) */
+        get: {
+            parameters: {
+                query?: {
+                    "filter[status]"?: components["schemas"]["quotation_status"];
+                    cursor?: string;
+                };
+                header?: {
+                    Authorization?: string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description ok */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/worker/quotations/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        /** One of my quotes */
+        get: {
+            parameters: {
+                query?: never;
+                header?: {
+                    Authorization?: string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description ok */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Revise: send the whole quote again; it becomes a new version */
+        patch: {
+            parameters: {
+                query?: never;
+                header?: {
+                    Authorization?: string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["quotation_input"];
+                };
+            };
+            responses: {
+                /** @description revised */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description accepted, declined, withdrawn or expired */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        trace?: never;
+    };
+    "/api/v1/worker/quotations/{id}/withdraw": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Withdraw a quote that hasn't been accepted */
+        post: {
+            parameters: {
+                query?: never;
+                header?: {
+                    Authorization?: string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description withdrawn */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/worker/bookings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Jobs I won (newest first) */
+        get: {
+            parameters: {
+                query?: never;
+                header?: {
+                    Authorization?: string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description ok */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/worker/bookings/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        /** One job, with the customer's name, phone and full address */
+        get: {
+            parameters: {
+                query?: never;
+                header?: {
+                    Authorization?: string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description ok */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/customer/service_requests/{service_request_id}/quotations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                service_request_id: string;
+            };
+            cookie?: never;
+        };
+        /** Quotes on my request (accepted first, then cheapest first) */
+        get: {
+            parameters: {
+                query?: never;
+                header?: {
+                    Authorization?: string;
+                };
+                path: {
+                    service_request_id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description ok */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/customer/quotations/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        /** One quote, with its price history */
+        get: {
+            parameters: {
+                query?: never;
+                header?: {
+                    Authorization?: string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description ok */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/customer/quotations/{id}/accept": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Accept the version I saw. Creates the booking; other quotes are declined */
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    Authorization?: string;
+                    /** @description 8–255 chars. A replay returns the stored response with Idempotent-Replayed: true */
+                    "Idempotency-Key": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": {
+                        version: number;
+                    };
+                };
+            };
+            responses: {
+                /** @description booked */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description the quote changed, expired, or the request is already booked */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/customer/quotations/{id}/decline": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Decline one quote */
+        post: {
+            parameters: {
+                query?: never;
+                header?: {
+                    Authorization?: string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": {
+                        reason?: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description declined */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/customer/bookings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** My bookings (newest first) */
+        get: {
+            parameters: {
+                query?: never;
+                header?: {
+                    Authorization?: string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description ok */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/customer/bookings/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        /** One booking, with the worker's phone */
+        get: {
+            parameters: {
+                query?: never;
+                header?: {
+                    Authorization?: string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description ok */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/categories": {
         parameters: {
             query?: never;
@@ -2078,6 +2623,8 @@ export interface components {
             cancel_reason?: string | null;
             invited_count: number;
             matched_at?: string | null;
+            quotes_count: number;
+            booking_id?: string | null;
             created_at: string;
             submitted_at?: string | null;
             expires_at?: string | null;
@@ -2099,8 +2646,18 @@ export interface components {
         lead: {
             id: string;
             /** @enum {string} */
-            status: "new" | "viewed" | "declined";
-            category: components["schemas"]["category_brief"];
+            status: "new" | "viewed" | "quoted" | "declined";
+            category: {
+                slug: string;
+                name: string;
+                icon?: string | null;
+                inspection_allowed: boolean;
+                tax_rate_bps: number;
+            };
+            currency: string;
+            quotes_count: number;
+            quotes_full: boolean;
+            quotation?: components["schemas"]["worker_quotation"] | null;
             description: string | null;
             ai_summary?: string | null;
             answers: {
@@ -2119,6 +2676,147 @@ export interface components {
             invited_at: string;
             expires_at: string;
         };
+        money: {
+            minor: number;
+            currency: string;
+        };
+        /** @enum {string} */
+        quotation_kind: "fixed" | "inspection";
+        /** @enum {string} */
+        quotation_status: "submitted" | "accepted" | "declined" | "withdrawn" | "expired";
+        quotation_item: {
+            /** @enum {string} */
+            type: "labour" | "material" | "transport" | "inspection" | "other";
+            description: string;
+            brand?: string | null;
+            quantity: number;
+            /** @enum {string} */
+            unit: "job" | "item" | "hour" | "visit" | "metre" | "sq_ft" | "kg" | "litre";
+            unit_price: components["schemas"]["money"];
+            amount: components["schemas"]["money"];
+            /** @enum {string|null} */
+            condition?: "new" | "refurbished" | "used" | null;
+            warranty_days?: number | null;
+        };
+        quotation_revision: {
+            id: string;
+            version: number;
+            /** @enum {string} */
+            stage: "initial" | "inspection_fee" | "final" | "change_order";
+            subtotal: components["schemas"]["money"];
+            tax_rate_bps: number;
+            tax: components["schemas"]["money"];
+            total: components["schemas"]["money"];
+            notes?: string | null;
+            estimated_minutes?: number | null;
+            items: components["schemas"]["quotation_item"][];
+            created_at: string;
+        };
+        quotation_input: {
+            kind: components["schemas"]["quotation_kind"];
+            items?: {
+                type: string;
+                description: string;
+                brand?: string;
+                quantity: number;
+                unit: string;
+                unit_price_minor: number;
+                condition?: string;
+                warranty_days?: number;
+            }[];
+            inspection_fee_minor?: number;
+            notes?: string;
+            estimated_minutes?: number;
+            valid_until?: string;
+        };
+        worker_card: {
+            id: string;
+            name: string | null;
+            photo?: components["schemas"]["file"];
+            rating_avg?: number | null;
+            rating_count: number;
+            experience_years?: number | null;
+            verified: boolean;
+            jobs_done: number;
+            phone?: string;
+        };
+        quotation: {
+            id: string;
+            kind: components["schemas"]["quotation_kind"];
+            status: components["schemas"]["quotation_status"];
+            current_version: number;
+            valid_until: string;
+            submitted_at: string;
+            revised: boolean;
+            revision: components["schemas"]["quotation_revision"];
+            worker: components["schemas"]["worker_card"];
+            /** @enum {string} */
+            distance_band: "under_1km" | "1_3km" | "3_5km" | "5_10km" | "over_10km";
+            booking_id?: string | null;
+            decline_reason?: string | null;
+            revisions?: {
+                version: number;
+                total: components["schemas"]["money"];
+                created_at: string;
+            }[];
+        };
+        worker_quotation: {
+            id: string;
+            lead_id: string;
+            kind: components["schemas"]["quotation_kind"];
+            status: components["schemas"]["quotation_status"];
+            current_version: number;
+            valid_until: string;
+            submitted_at: string;
+            revision: components["schemas"]["quotation_revision"];
+            category: components["schemas"]["category_brief"];
+            locality: string;
+            editable: boolean;
+            booking_id?: string | null;
+            decline_reason?: string | null;
+        };
+        /** @enum {string} */
+        booking_status: "confirmed" | "inspection_scheduled" | "inspecting" | "awaiting_final_approval" | "closed_after_inspection" | "scheduled" | "in_progress" | "awaiting_change_approval" | "completed" | "paid" | "cancelled" | "rejected" | "disputed" | "refunded";
+        booking_address: {
+            label?: string | null;
+            line1?: string;
+            line2?: string | null;
+            landmark?: string | null;
+            locality?: string;
+            pincode?: string;
+            city?: string;
+            location?: components["schemas"]["lat_lng"];
+        } | null;
+        booking: {
+            id: string;
+            status: components["schemas"]["booking_status"];
+            kind: components["schemas"]["quotation_kind"];
+            request_id: string;
+            category: components["schemas"]["category_brief"];
+            approved_total: components["schemas"]["money"];
+            revision: components["schemas"]["quotation_revision"];
+            quotation_id: string;
+            preferred_from?: string | null;
+            preferred_to?: string | null;
+            confirmed_at: string;
+            address?: components["schemas"]["booking_address"];
+        };
+        customer_booking: components["schemas"]["booking"] & {
+            worker: components["schemas"]["worker_card"];
+        };
+        worker_booking: components["schemas"]["booking"] & {
+            customer?: {
+                name?: string | null;
+                phone?: string;
+            } | null;
+            description?: string | null;
+            urgency: components["schemas"]["urgency"];
+            answers: {
+                question?: string;
+                answer?: string;
+            }[];
+            photos: components["schemas"]["request_photo"][];
+        };
         notification: {
             id: string;
             kind: string;
@@ -2135,6 +2833,7 @@ export interface components {
             urgency?: components["schemas"]["urgency"];
             invited_count: number;
             safety_flag?: boolean;
+            quotes_count?: number;
             category: string;
             city: string;
             locality?: string | null;
@@ -2196,6 +2895,27 @@ export interface components {
                 declined_at?: string | null;
                 decline_reason?: string | null;
             }[];
+            quotations?: {
+                id: string;
+                worker_id: string;
+                worker_name?: string | null;
+                kind: components["schemas"]["quotation_kind"];
+                status: components["schemas"]["quotation_status"];
+                current_version: number;
+                valid_until?: string;
+                decline_reason?: string | null;
+                accepted_at?: string | null;
+                withdrawn_at?: string | null;
+                revisions: components["schemas"]["quotation_revision"][];
+            }[];
+            booking?: {
+                id?: string;
+                status?: components["schemas"]["booking_status"];
+                kind?: components["schemas"]["quotation_kind"];
+                worker_id?: string;
+                approved_total?: components["schemas"]["money"];
+                confirmed_at?: string;
+            } | null;
         };
         page_meta: {
             next_cursor?: string | null;

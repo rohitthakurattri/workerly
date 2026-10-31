@@ -5,7 +5,8 @@ load Rails.root.join("db/seeds.rb")
 
 phones = { dual: "+919814000001", admin: "+919814000099", logout: "+919814000002",
            fresh: "+9198140#{format("%05d", rand(100_000))}", new_worker: "+9198141#{format("%05d", rand(100_000))}",
-           customer: "+9198142#{format("%05d", rand(100_000))}", pro_near: "+919814000011", pro_far: "+919814000012" }
+           customer: "+9198142#{format("%05d", rand(100_000))}", pro_near: "+919814000011", pro_far: "+919814000012",
+           pro_near2: "+919814000013" }
 OtpChallenge.where(phone_e164: phones.values).delete_all
 
 dual = User.kept.find_or_create_by!(phone_e164: phones[:dual])
@@ -15,10 +16,12 @@ dual.update!(name: "Dual Role") if dual.name.blank?
                                                             submitted_at: Time.current, suspended_at: nil)
 
 # Phase 4 matching: an approved, available plumber covering Mohali Sector 70, and one whose
-# circle around Chandigarh Sector 17 stops short of it.
+# circle around Chandigarh Sector 17 stops short of it. Phase 5 adds a second Mohali plumber so
+# a request gets two competing quotes.
 plumber = ServiceCategory.find_by!(slug: "plumber")
 { pro_near: [ "Near Plumber", "mohali", 30.7010, 76.7210, 5000 ],
-  pro_far: [ "Far Plumber", "chandigarh", 30.7398, 76.7827, 2000 ] }.each do |key, (name, city, lat, lng, radius_m)|
+  pro_far: [ "Far Plumber", "chandigarh", 30.7398, 76.7827, 2000 ],
+  pro_near2: [ "Second Plumber", "mohali", 30.7020, 76.7190, 5000 ] }.each do |key, (name, city, lat, lng, radius_m)|
   user = User.kept.find_or_create_by!(phone_e164: phones[key])
   %i[customer worker].each { |r| user.grant_role!(r) }
   user.update!(name:)
