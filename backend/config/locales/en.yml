@@ -88,6 +88,14 @@ en:
     dispute_window_closed: "The time to report a problem with this job has passed. Please contact support."
     dispute_already_open: "You've already reported a problem with this job."
     dispute_not_open: "This dispute is already resolved."
+    nothing_to_pay: "There's nothing to pay on this booking right now."
+    amount_mismatch: "Enter exactly the amount due."
+    payment_gateway_error: "The payment service didn't respond. Please try again in a minute."
+    invalid_signature: "The payment confirmation could not be verified."
+    not_refundable: "This payment can't be refunded here."
+    refund_too_large: "That's more than can be refunded on this payment."
+    reference_required: "Add the bank or UPI reference of the transfer."
+    payout_too_large: "That's more than this worker's available balance."
   notifications:
     lead_new:
       title: "New job: %{category}"
@@ -131,3 +139,5 @@ en:
       dispute: "%{customer} reported a problem with the %{category} job"
       resolve_dispute: "Support has resolved the problem reported on the %{category} job"
       message: "New message from %{name}"
+      pay: "Payment received: %{amount} for the %{category} job"
+      refund: "A refund on your %{category} booking has been processed"

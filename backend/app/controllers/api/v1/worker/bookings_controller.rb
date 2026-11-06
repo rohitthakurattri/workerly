@@ -2,6 +2,9 @@ module Api
   module V1
     module Worker
       class BookingsController < BaseController
+        include Idempotent
+
+        idempotent :cash_received
         REVISION_PARAMS = [ :notes, :estimated_minutes,
                             { items: %i[type description brand quantity unit unit_price_minor condition warranty_days] } ].freeze
 
@@ -38,6 +41,21 @@ module Api
         # POST /api/v1/worker/bookings/:id/cancel { reason? } — before the work starts.
         def cancel = perform(:cancel, reason: params[:reason])
 
+        # POST /api/v1/worker/bookings/:id/cash_received { amount_minor } + Idempotency-Key
+        # The customer paid in cash: confirm the exact amount owed.
+        def cash_received
+          booking = find_booking(:act?)
+          Payments::RecordCash.call(booking:, worker: current_user, amount_minor: params.require(:amount_minor),
+                                    idempotency_key: request.headers["Idempotency-Key"])
+          render_booking(booking)
+        end
+
+        # GET /api/v1/worker/bookings/:id/invoice
+        def invoice
+          booking = find_booking(:show?)
+          render_data(InvoiceResource.new(booking.invoice || raise(ActiveRecord::RecordNotFound)).to_h)
+        end
+
         # GET /api/v1/worker/bookings/:id/messages
         def messages
           booking = find_booking(:message?)
@@ -63,7 +81,7 @@ module Api
 
         def scope
           policy_scope([ :worker, Booking ])
-            .includes(:customer, :pending_revision, :status_histories, :review, :disputes,
+            .includes(:customer, :pending_revision, :status_histories, :review, :disputes, :payments, :invoice,
                       approvals: { quotation_revision: :items }, quotation: { revisions: :items },
                       service_request: [ :service_category, :city, { attachments: { file_attachment: :blob } } ])
         end

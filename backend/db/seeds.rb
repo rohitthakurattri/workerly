@@ -44,4 +44,10 @@ categories.each_with_index do |(slug, icon, en, hi, pa, inspection), i|
   c.update!(icon:, name_i18n: { en:, hi:, pa: }, inspection_allowed: inspection, sort: i * 10)
 end
 
+# D4 default until real numbers are set: 10% of labour, no fixed fee, everywhere.
+CommissionRule.find_or_create_by!(city: nil, service_category: nil, effective_from: Time.utc(2026, 1, 1)) do |r|
+  r.percent_bps = 1000
+  r.fixed_minor = 0
+end
+
 puts "Seeded #{Country.count} country, #{State.count} states, #{City.count} cities (#{City.launched.count} launched), #{ServiceCategory.count} categories."

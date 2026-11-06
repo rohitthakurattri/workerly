@@ -3,8 +3,8 @@ module Bookings
   class NotifyJob < ApplicationJob
     queue_as :default
 
-    CUSTOMER_EVENTS = %w[schedule check_in final_quotation start change_order complete cancel admin_cancel resolve_dispute].freeze
-    WORKER_EVENTS = %w[approve_final reject_final approve_change reject_change cancel admin_cancel dispute resolve_dispute].freeze
+    CUSTOMER_EVENTS = %w[schedule check_in final_quotation start change_order complete cancel admin_cancel resolve_dispute refund].freeze
+    WORKER_EVENTS = %w[approve_final reject_final approve_change reject_change cancel admin_cancel dispute resolve_dispute pay].freeze
 
     def perform(booking_id, event, actor_role)
       booking = Booking.includes(:customer, :pending_revision, worker_profile: :user, service_request: :service_category).find(booking_id)
@@ -27,7 +27,7 @@ module Bookings
       time = booking.scheduled_at&.in_time_zone(booking.service_request.city&.time_zone || "Asia/Kolkata")
       { worker: booking.worker_profile.user.name, customer: booking.customer.name,
         category: booking.service_request.service_category.name(user.locale),
-        amount: revision && Shared::Money.format(revision.total_minor, revision.currency_code),
+        amount: revision ? Shared::Money.format(revision.total_minor, revision.currency_code) : Shared::Money.format(booking.paid_minor, booking.currency_code),
         time: time&.strftime("%-d %b, %-l:%M %p") }
     end
   end

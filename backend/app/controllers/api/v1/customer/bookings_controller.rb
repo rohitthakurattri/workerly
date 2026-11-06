@@ -66,11 +66,17 @@ module Api
           render_booking(booking, status: :created)
         end
 
+        # GET /api/v1/customer/bookings/:id/invoice (once fully paid)
+        def invoice
+          booking = find_booking(:show?)
+          render_data(InvoiceResource.new(booking.invoice || raise(ActiveRecord::RecordNotFound)).to_h)
+        end
+
         private
 
         def scope
           policy_scope([ :customer, Booking ])
-            .includes(:pending_revision, :status_histories, :review, :disputes, approvals: { quotation_revision: :items },
+            .includes(:pending_revision, :status_histories, :review, :disputes, :payments, :invoice, approvals: { quotation_revision: :items },
                       quotation: { revisions: :items }, service_request: %i[service_category city],
                       worker_profile: [ :user, { photo_attachment: :blob } ])
         end

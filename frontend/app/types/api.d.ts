@@ -2199,6 +2199,614 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/customer/bookings/{booking_id}/payments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                booking_id: string;
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Start paying online what's owed (gateway order + checkout details) */
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    Authorization?: string;
+                    "Idempotency-Key": string;
+                };
+                path: {
+                    booking_id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description order created */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description nothing owed */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/customer/payments/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        /** Payment status (poll after checkout) */
+        get: {
+            parameters: {
+                query?: never;
+                header?: {
+                    Authorization?: string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description ok */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/customer/payments/{id}/verify": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Checkout callback: checks the signature; never marks paid (the webhook does) */
+        post: {
+            parameters: {
+                query?: never;
+                header?: {
+                    Authorization?: string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": {
+                        razorpay_payment_id: string;
+                        razorpay_order_id: string;
+                        razorpay_signature: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description signature valid */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description bad signature */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/customer/bookings/{id}/invoice": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        /** Invoice (once fully paid) */
+        get: {
+            parameters: {
+                query?: never;
+                header?: {
+                    Authorization?: string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description ok */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description not paid yet */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/webhooks/razorpay": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Razorpay webhook (HMAC-SHA256 of the raw body in X-Razorpay-Signature; deduplicated by X-Razorpay-Event-Id) */
+        post: {
+            parameters: {
+                query?: never;
+                header?: {
+                    "X-Razorpay-Signature"?: string;
+                    "X-Razorpay-Event-Id"?: string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": Record<string, never>;
+                };
+            };
+            responses: {
+                /** @description processed or duplicate */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description bad signature */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/worker/bookings/{id}/cash_received": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Customer paid in cash: confirm the exact amount owed */
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    Authorization?: string;
+                    "Idempotency-Key": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": {
+                        amount_minor: number;
+                    };
+                };
+            };
+            responses: {
+                /** @description recorded */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description not the amount owed */
+                422: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/worker/earnings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Balance, paid jobs with commission, payouts */
+        get: {
+            parameters: {
+                query?: never;
+                header?: {
+                    Authorization?: string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description ok */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/payments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Payments */
+        get: {
+            parameters: {
+                query?: {
+                    "filter[status]"?: string;
+                    "filter[method]"?: "online" | "cash";
+                };
+                header?: {
+                    Authorization?: string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description ok */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/payments/{id}/refunds": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Refund all or part of an online payment (finance, admin; audited) */
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    Authorization?: string;
+                    "Idempotency-Key": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": {
+                        amount_minor: number;
+                        reason: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description refunded */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description more than refundable */
+                422: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/finance/balances": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Worker balances (held, owed commission, net) */
+        get: {
+            parameters: {
+                query?: never;
+                header?: {
+                    Authorization?: string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description ok */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/finance/payouts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Record a bank/UPI payout (nets owed commission first; audited) */
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    Authorization?: string;
+                    "Idempotency-Key": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": {
+                        worker_id: string;
+                        amount_minor: number;
+                        reference: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description recorded */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/finance/reconciliation": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Reconciliation report */
+        get: {
+            parameters: {
+                query?: {
+                    from?: string;
+                    to?: string;
+                };
+                header?: {
+                    Authorization?: string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description ok */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/finance/commission_rules": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Commission rules (newest first) */
+        get: {
+            parameters: {
+                query?: never;
+                header?: {
+                    Authorization?: string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description ok */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        /** Add a rule (rules are never edited; a later effective_from wins) */
+        post: {
+            parameters: {
+                query?: never;
+                header?: {
+                    Authorization?: string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": {
+                        city?: string;
+                        category?: string;
+                        percent_bps: number;
+                        fixed_minor?: number;
+                        effective_from?: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description created */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/worker/leads/{lead_id}/quotations": {
         parameters: {
             query?: never;
@@ -3698,7 +4306,7 @@ export interface components {
             location?: components["schemas"]["lat_lng"];
         } | null;
         /** @enum {string} */
-        booking_event: "schedule" | "check_in" | "final_quotation" | "approve_final" | "reject_final" | "start" | "change_order" | "approve_change" | "reject_change" | "complete" | "cancel" | "admin_cancel" | "dispute" | "resolve_dispute";
+        booking_event: "schedule" | "check_in" | "final_quotation" | "approve_final" | "reject_final" | "start" | "change_order" | "approve_change" | "reject_change" | "complete" | "cancel" | "admin_cancel" | "dispute" | "pay" | "refund" | "resolve_dispute";
         booking: {
             id: string;
             status: components["schemas"]["booking_status"];
@@ -3736,6 +4344,11 @@ export interface components {
             cancelled_at?: string | null;
             cancelled_by?: string | null;
             cancel_reason?: string | null;
+            paid: components["schemas"]["money"];
+            outstanding: components["schemas"]["money"];
+            payable: boolean;
+            invoice_number?: string | null;
+            payments: components["schemas"]["payment"][];
             contact_visible: boolean;
             chat_open: boolean;
             actions: components["schemas"]["booking_event"][];
@@ -3755,6 +4368,133 @@ export interface components {
                 resolved_at?: string | null;
             } | null;
             address?: components["schemas"]["booking_address"];
+        };
+        payment: {
+            id: string;
+            /** @enum {string} */
+            method: "online" | "cash";
+            provider: string;
+            /** @enum {string} */
+            status: "created" | "captured" | "failed" | "refunded" | "partially_refunded" | "amount_mismatch";
+            amount: components["schemas"]["money"];
+            refunded: components["schemas"]["money"];
+            captured_at?: string | null;
+            created_at: string;
+        };
+        payment_order: {
+            payment: components["schemas"]["payment"];
+            checkout: {
+                /** @enum {string} */
+                provider: "fake" | "razorpay";
+                key_id: string | null;
+                order_id: string;
+                amount: number;
+                currency: string;
+                name?: string;
+                description?: string;
+                prefill?: {
+                    contact?: string;
+                };
+            };
+        };
+        invoice: {
+            id: string;
+            number: string;
+            booking_id: string;
+            issued_at: string;
+            subtotal: components["schemas"]["money"];
+            tax: components["schemas"]["money"];
+            total: components["schemas"]["money"];
+            lines: {
+                stage?: string;
+                type?: string;
+                description?: string;
+                quantity?: number;
+                unit?: string;
+                unit_price_minor?: number;
+                amount_minor?: number;
+            }[];
+            parties: {
+                [key: string]: unknown;
+            };
+        };
+        earnings: {
+            balance: {
+                held: components["schemas"]["money"];
+                owed: components["schemas"]["money"];
+                net: components["schemas"]["money"];
+            };
+            jobs: {
+                booking_id: string;
+                category: string;
+                method: string;
+                amount: components["schemas"]["money"];
+                commission: components["schemas"]["money"];
+                tax: components["schemas"]["money"];
+                earnings: components["schemas"]["money"];
+                refunded: components["schemas"]["money"];
+                paid_at: string;
+            }[];
+            payouts: {
+                id: string;
+                amount: components["schemas"]["money"];
+                reference: string;
+                paid_at: string;
+            }[];
+        };
+        admin_payment: components["schemas"]["payment"] & {
+            booking_id: string;
+            customer_name?: string | null;
+            worker_name?: string | null;
+            commission?: components["schemas"]["money"] | null;
+            worker_share?: components["schemas"]["money"] | null;
+            refundable: components["schemas"]["money"];
+            refunds: {
+                id: string;
+                amount: components["schemas"]["money"];
+                /** @enum {string} */
+                status: "pending" | "processed" | "failed";
+                reason: string;
+            }[];
+        };
+        worker_balance: {
+            worker_id: string;
+            name?: string | null;
+            phone?: string;
+            held: components["schemas"]["money"];
+            owed: components["schemas"]["money"];
+            net: components["schemas"]["money"];
+        };
+        reconciliation: {
+            currency: string;
+            from: string;
+            to: string;
+            online_captured_minor: number;
+            cash_recorded_minor: number;
+            refunded_minor: number;
+            payouts_minor: number;
+            commission_minor: number;
+            tax_minor: number;
+            balances: {
+                [key: string]: number;
+            };
+            ledger_balanced: boolean;
+            ledger_debits_minor: number;
+            ledger_credits_minor: number;
+            issues: {
+                payments_without_ledger: string[];
+                amount_mismatches: string[];
+                pending_refunds: string[];
+                stale_orders: number;
+            };
+        };
+        commission_rule: {
+            id: number;
+            city?: string | null;
+            category?: string | null;
+            percent_bps: number;
+            fixed_minor: number;
+            effective_from: string;
         };
         message: {
             id: string;

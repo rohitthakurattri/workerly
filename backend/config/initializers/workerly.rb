@@ -13,7 +13,8 @@ module Workerly
                       :request_ttl_hours, :match_fanout, :max_quotes_per_request, :lead_sms_fallback,
                       :vapid_public_key, :vapid_private_key, :vapid_subject,
                       :inspection_fee_adjusted, :booking_contact_hours, :review_window_days, :dispute_window_days,
-                      keyword_init: true)
+                      :payment_adapter, :razorpay_key_id, :razorpay_key_secret, :razorpay_webhook_secret,
+                      :invoice_prefix, keyword_init: true)
 
   def self.config
     @config ||= Config.new(
@@ -45,7 +46,13 @@ module Workerly
       # Contact details and chat stay open this long after completion.
       booking_contact_hours: ENV.fetch("BOOKING_CONTACT_HOURS", "48").to_i,
       review_window_days: ENV.fetch("REVIEW_WINDOW_DAYS", "30").to_i,
-      dispute_window_days: ENV.fetch("DISPUTE_WINDOW_DAYS", "7").to_i
+      dispute_window_days: ENV.fetch("DISPUTE_WINDOW_DAYS", "7").to_i,
+      # Payments (D3 pending): "fake" until Razorpay keys exist; production refuses to boot without them.
+      payment_adapter: ENV.fetch("PAYMENT_ADAPTER", "fake"),
+      razorpay_key_id: ENV["RAZORPAY_KEY_ID"].presence,
+      razorpay_key_secret: secret("RAZORPAY_KEY_SECRET"),
+      razorpay_webhook_secret: secret("RAZORPAY_WEBHOOK_SECRET"),
+      invoice_prefix: ENV.fetch("INVOICE_PREFIX", "WK")
     ).freeze
   end
 end

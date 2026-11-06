@@ -1100,6 +1100,8 @@ components:
       - cancel
       - admin_cancel
       - dispute
+      - pay
+      - refund
       - resolve_dispute
     booking:
       type: object
@@ -1118,6 +1120,10 @@ components:
       - actions
       - contact_visible
       - chat_open
+      - paid
+      - outstanding
+      - payable
+      - payments
       properties:
         id:
           type: string
@@ -1218,6 +1224,19 @@ components:
         cancel_reason:
           type: string
           nullable: true
+        paid:
+          "$ref": "#/components/schemas/money"
+        outstanding:
+          "$ref": "#/components/schemas/money"
+        payable:
+          type: boolean
+        invoice_number:
+          type: string
+          nullable: true
+        payments:
+          type: array
+          items:
+            "$ref": "#/components/schemas/payment"
         contact_visible:
           type: boolean
         chat_open:
@@ -1262,6 +1281,364 @@ components:
               nullable: true
         address:
           "$ref": "#/components/schemas/booking_address"
+    payment:
+      type: object
+      required:
+      - id
+      - method
+      - provider
+      - status
+      - amount
+      - refunded
+      - created_at
+      properties:
+        id:
+          type: string
+        method:
+          type: string
+          enum:
+          - online
+          - cash
+        provider:
+          type: string
+        status:
+          type: string
+          enum:
+          - created
+          - captured
+          - failed
+          - refunded
+          - partially_refunded
+          - amount_mismatch
+        amount:
+          "$ref": "#/components/schemas/money"
+        refunded:
+          "$ref": "#/components/schemas/money"
+        captured_at:
+          type: string
+          nullable: true
+        created_at:
+          type: string
+    payment_order:
+      type: object
+      required:
+      - payment
+      - checkout
+      properties:
+        payment:
+          "$ref": "#/components/schemas/payment"
+        checkout:
+          type: object
+          required:
+          - provider
+          - key_id
+          - order_id
+          - amount
+          - currency
+          properties:
+            provider:
+              type: string
+              enum:
+              - fake
+              - razorpay
+            key_id:
+              type: string
+              nullable: true
+            order_id:
+              type: string
+            amount:
+              type: integer
+            currency:
+              type: string
+            name:
+              type: string
+            description:
+              type: string
+            prefill:
+              type: object
+              properties:
+                contact:
+                  type: string
+    invoice:
+      type: object
+      required:
+      - id
+      - number
+      - booking_id
+      - issued_at
+      - subtotal
+      - tax
+      - total
+      - lines
+      - parties
+      properties:
+        id:
+          type: string
+        number:
+          type: string
+        booking_id:
+          type: string
+        issued_at:
+          type: string
+        subtotal:
+          "$ref": "#/components/schemas/money"
+        tax:
+          "$ref": "#/components/schemas/money"
+        total:
+          "$ref": "#/components/schemas/money"
+        lines:
+          type: array
+          items:
+            type: object
+            properties:
+              stage:
+                type: string
+              type:
+                type: string
+              description:
+                type: string
+              quantity:
+                type: number
+              unit:
+                type: string
+              unit_price_minor:
+                type: integer
+              amount_minor:
+                type: integer
+        parties:
+          type: object
+          additionalProperties: true
+    earnings:
+      type: object
+      required:
+      - balance
+      - jobs
+      - payouts
+      properties:
+        balance:
+          type: object
+          required:
+          - held
+          - owed
+          - net
+          properties:
+            held:
+              "$ref": "#/components/schemas/money"
+            owed:
+              "$ref": "#/components/schemas/money"
+            net:
+              "$ref": "#/components/schemas/money"
+        jobs:
+          type: array
+          items:
+            type: object
+            required:
+            - booking_id
+            - category
+            - method
+            - amount
+            - commission
+            - tax
+            - earnings
+            - refunded
+            - paid_at
+            properties:
+              booking_id:
+                type: string
+              category:
+                type: string
+              method:
+                type: string
+              amount:
+                "$ref": "#/components/schemas/money"
+              commission:
+                "$ref": "#/components/schemas/money"
+              tax:
+                "$ref": "#/components/schemas/money"
+              earnings:
+                "$ref": "#/components/schemas/money"
+              refunded:
+                "$ref": "#/components/schemas/money"
+              paid_at:
+                type: string
+        payouts:
+          type: array
+          items:
+            type: object
+            required:
+            - id
+            - amount
+            - reference
+            - paid_at
+            properties:
+              id:
+                type: string
+              amount:
+                "$ref": "#/components/schemas/money"
+              reference:
+                type: string
+              paid_at:
+                type: string
+    admin_payment:
+      allOf:
+      - "$ref": "#/components/schemas/payment"
+      - type: object
+        required:
+        - booking_id
+        - refundable
+        - refunds
+        properties:
+          booking_id:
+            type: string
+          customer_name:
+            type: string
+            nullable: true
+          worker_name:
+            type: string
+            nullable: true
+          commission:
+            allOf:
+            - "$ref": "#/components/schemas/money"
+            nullable: true
+          worker_share:
+            allOf:
+            - "$ref": "#/components/schemas/money"
+            nullable: true
+          refundable:
+            "$ref": "#/components/schemas/money"
+          refunds:
+            type: array
+            items:
+              type: object
+              required:
+              - id
+              - amount
+              - status
+              - reason
+              properties:
+                id:
+                  type: string
+                amount:
+                  "$ref": "#/components/schemas/money"
+                status:
+                  type: string
+                  enum:
+                  - pending
+                  - processed
+                  - failed
+                reason:
+                  type: string
+    worker_balance:
+      type: object
+      required:
+      - worker_id
+      - held
+      - owed
+      - net
+      properties:
+        worker_id:
+          type: string
+        name:
+          type: string
+          nullable: true
+        phone:
+          type: string
+        held:
+          "$ref": "#/components/schemas/money"
+        owed:
+          "$ref": "#/components/schemas/money"
+        net:
+          "$ref": "#/components/schemas/money"
+    reconciliation:
+      type: object
+      required:
+      - currency
+      - from
+      - to
+      - online_captured_minor
+      - cash_recorded_minor
+      - refunded_minor
+      - payouts_minor
+      - commission_minor
+      - tax_minor
+      - balances
+      - ledger_balanced
+      - ledger_debits_minor
+      - ledger_credits_minor
+      - issues
+      properties:
+        currency:
+          type: string
+        from:
+          type: string
+        to:
+          type: string
+        online_captured_minor:
+          type: integer
+        cash_recorded_minor:
+          type: integer
+        refunded_minor:
+          type: integer
+        payouts_minor:
+          type: integer
+        commission_minor:
+          type: integer
+        tax_minor:
+          type: integer
+        balances:
+          type: object
+          additionalProperties:
+            type: integer
+        ledger_balanced:
+          type: boolean
+        ledger_debits_minor:
+          type: integer
+        ledger_credits_minor:
+          type: integer
+        issues:
+          type: object
+          required:
+          - payments_without_ledger
+          - amount_mismatches
+          - pending_refunds
+          - stale_orders
+          properties:
+            payments_without_ledger:
+              type: array
+              items:
+                type: string
+            amount_mismatches:
+              type: array
+              items:
+                type: string
+            pending_refunds:
+              type: array
+              items:
+                type: string
+            stale_orders:
+              type: integer
+    commission_rule:
+      type: object
+      required:
+      - id
+      - percent_bps
+      - fixed_minor
+      - effective_from
+      properties:
+        id:
+          type: integer
+        city:
+          type: string
+          nullable: true
+        category:
+          type: string
+          nullable: true
+        percent_bps:
+          type: integer
+        fixed_minor:
+          type: integer
+        effective_from:
+          type: string
     message:
       type: object
       required:
@@ -3101,6 +3478,388 @@ paths:
       responses:
         '200':
           description: ok
+  "/api/v1/customer/bookings/{booking_id}/payments":
+    parameters:
+    - name: booking_id
+      in: path
+      schema:
+        type: string
+      required: true
+    post:
+      summary: Start paying online what's owed (gateway order + checkout details)
+      tags:
+      - Payments
+      security:
+      - bearer: []
+      parameters:
+      - name: Authorization
+        in: header
+        schema:
+          type: string
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema:
+          type: string
+      responses:
+        '201':
+          description: order created
+        '409':
+          description: nothing owed
+  "/api/v1/customer/payments/{id}":
+    parameters:
+    - name: id
+      in: path
+      schema:
+        type: string
+      required: true
+    get:
+      summary: Payment status (poll after checkout)
+      tags:
+      - Payments
+      security:
+      - bearer: []
+      parameters:
+      - name: Authorization
+        in: header
+        schema:
+          type: string
+      responses:
+        '200':
+          description: ok
+  "/api/v1/customer/payments/{id}/verify":
+    parameters:
+    - name: id
+      in: path
+      schema:
+        type: string
+      required: true
+    post:
+      summary: 'Checkout callback: checks the signature; never marks paid (the webhook
+        does)'
+      tags:
+      - Payments
+      security:
+      - bearer: []
+      parameters:
+      - name: Authorization
+        in: header
+        schema:
+          type: string
+      responses:
+        '200':
+          description: signature valid
+        '400':
+          description: bad signature
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - razorpay_payment_id
+              - razorpay_order_id
+              - razorpay_signature
+              properties:
+                razorpay_payment_id:
+                  type: string
+                razorpay_order_id:
+                  type: string
+                razorpay_signature:
+                  type: string
+  "/api/v1/customer/bookings/{id}/invoice":
+    parameters:
+    - name: id
+      in: path
+      schema:
+        type: string
+      required: true
+    get:
+      summary: Invoice (once fully paid)
+      tags:
+      - Payments
+      security:
+      - bearer: []
+      parameters:
+      - name: Authorization
+        in: header
+        schema:
+          type: string
+      responses:
+        '200':
+          description: ok
+        '404':
+          description: not paid yet
+  "/api/v1/webhooks/razorpay":
+    post:
+      summary: Razorpay webhook (HMAC-SHA256 of the raw body in X-Razorpay-Signature;
+        deduplicated by X-Razorpay-Event-Id)
+      tags:
+      - Payments
+      parameters:
+      - name: X-Razorpay-Signature
+        in: header
+        schema:
+          type: string
+      - name: X-Razorpay-Event-Id
+        in: header
+        schema:
+          type: string
+      responses:
+        '200':
+          description: processed or duplicate
+        '401':
+          description: bad signature
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+  "/api/v1/worker/bookings/{id}/cash_received":
+    parameters:
+    - name: id
+      in: path
+      schema:
+        type: string
+      required: true
+    post:
+      summary: 'Customer paid in cash: confirm the exact amount owed'
+      tags:
+      - Payments
+      security:
+      - bearer: []
+      parameters:
+      - name: Authorization
+        in: header
+        schema:
+          type: string
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: recorded
+        '422':
+          description: not the amount owed
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - amount_minor
+              properties:
+                amount_minor:
+                  type: integer
+  "/api/v1/worker/earnings":
+    get:
+      summary: Balance, paid jobs with commission, payouts
+      tags:
+      - Payments
+      security:
+      - bearer: []
+      parameters:
+      - name: Authorization
+        in: header
+        schema:
+          type: string
+      responses:
+        '200':
+          description: ok
+  "/api/v1/admin/payments":
+    get:
+      summary: Payments
+      tags:
+      - Admin finance
+      security:
+      - bearer: []
+      parameters:
+      - name: Authorization
+        in: header
+        schema:
+          type: string
+      - name: filter[status]
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: filter[method]
+        in: query
+        required: false
+        schema:
+          type: string
+          enum:
+          - online
+          - cash
+      responses:
+        '200':
+          description: ok
+  "/api/v1/admin/payments/{id}/refunds":
+    parameters:
+    - name: id
+      in: path
+      schema:
+        type: string
+      required: true
+    post:
+      summary: Refund all or part of an online payment (finance, admin; audited)
+      tags:
+      - Admin finance
+      security:
+      - bearer: []
+      parameters:
+      - name: Authorization
+        in: header
+        schema:
+          type: string
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema:
+          type: string
+      responses:
+        '201':
+          description: refunded
+        '422':
+          description: more than refundable
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - amount_minor
+              - reason
+              properties:
+                amount_minor:
+                  type: integer
+                reason:
+                  type: string
+  "/api/v1/admin/finance/balances":
+    get:
+      summary: Worker balances (held, owed commission, net)
+      tags:
+      - Admin finance
+      security:
+      - bearer: []
+      parameters:
+      - name: Authorization
+        in: header
+        schema:
+          type: string
+      responses:
+        '200':
+          description: ok
+  "/api/v1/admin/finance/payouts":
+    post:
+      summary: Record a bank/UPI payout (nets owed commission first; audited)
+      tags:
+      - Admin finance
+      security:
+      - bearer: []
+      parameters:
+      - name: Authorization
+        in: header
+        schema:
+          type: string
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema:
+          type: string
+      responses:
+        '201':
+          description: recorded
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - worker_id
+              - amount_minor
+              - reference
+              properties:
+                worker_id:
+                  type: string
+                amount_minor:
+                  type: integer
+                reference:
+                  type: string
+  "/api/v1/admin/finance/reconciliation":
+    get:
+      summary: Reconciliation report
+      tags:
+      - Admin finance
+      security:
+      - bearer: []
+      parameters:
+      - name: Authorization
+        in: header
+        schema:
+          type: string
+      - name: from
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: to
+        in: query
+        required: false
+        schema:
+          type: string
+      responses:
+        '200':
+          description: ok
+  "/api/v1/admin/finance/commission_rules":
+    get:
+      summary: Commission rules (newest first)
+      tags:
+      - Admin finance
+      security:
+      - bearer: []
+      parameters:
+      - name: Authorization
+        in: header
+        schema:
+          type: string
+      responses:
+        '200':
+          description: ok
+    post:
+      summary: Add a rule (rules are never edited; a later effective_from wins)
+      tags:
+      - Admin finance
+      security:
+      - bearer: []
+      parameters:
+      - name: Authorization
+        in: header
+        schema:
+          type: string
+      responses:
+        '201':
+          description: created
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - percent_bps
+              properties:
+                city:
+                  type: string
+                category:
+                  type: string
+                percent_bps:
+                  type: integer
+                fixed_minor:
+                  type: integer
+                effective_from:
+                  type: string
   "/api/v1/worker/leads/{lead_id}/quotations":
     parameters:
     - name: lead_id

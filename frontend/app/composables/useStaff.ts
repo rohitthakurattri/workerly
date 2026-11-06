@@ -12,5 +12,7 @@ export function useStaff() {
     canSuspend: is('admin', 'support'),
     canViewAudit: is('admin'),
     canViewRequests: is('admin', 'support'),
+    canViewPayments: is('admin', 'finance', 'support'),
+    canMoveMoney: is('admin', 'finance'),
   }
 }

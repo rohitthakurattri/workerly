@@ -22,6 +22,9 @@ module Bookings
                       from: %w[confirmed inspection_scheduled inspecting awaiting_final_approval scheduled in_progress
                                awaiting_change_approval].index_with("cancelled") },
       dispute: { roles: %w[customer], from: { "completed" => "disputed", "paid" => "disputed" } },
+      # Set by Payments::Settle and Refunds::Complete, never by a person.
+      pay: { roles: %w[system], from: { "completed" => "paid", "disputed" => "disputed" } },
+      refund: { roles: %w[system], from: { "paid" => "refunded", "disputed" => "disputed" } },
       resolve_dispute: { roles: %w[admin support], from: { "disputed" => ->(b) { b.status_before_dispute || "completed" } } }
     }.freeze
 

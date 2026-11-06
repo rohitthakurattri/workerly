@@ -245,7 +245,7 @@ RSpec.configure do |config|
           booking_event: { type: :string, enum: Bookings::Transitions::EVENTS.map(&:to_s) },
           booking: {
             type: :object, required: %w[id status kind request_id category approved_total revision quotation_id confirmed_at
-                                        approvals history actions contact_visible chat_open],
+                                        approvals history actions contact_visible chat_open paid outstanding payable payments],
             properties: { id: { type: :string }, status: { "$ref" => "#/components/schemas/booking_status" },
                           kind: { "$ref" => "#/components/schemas/quotation_kind" }, request_id: { type: :string },
                           category: { "$ref" => "#/components/schemas/category_brief" },
@@ -264,6 +264,9 @@ RSpec.configure do |config|
                           checked_in_at: { type: :string, nullable: true }, started_at: { type: :string, nullable: true },
                           completed_at: { type: :string, nullable: true }, cancelled_at: { type: :string, nullable: true },
                           cancelled_by: { type: :string, nullable: true }, cancel_reason: { type: :string, nullable: true },
+                          paid: { "$ref" => "#/components/schemas/money" }, outstanding: { "$ref" => "#/components/schemas/money" },
+                          payable: { type: :boolean }, invoice_number: { type: :string, nullable: true },
+                          payments: { type: :array, items: { "$ref" => "#/components/schemas/payment" } },
                           contact_visible: { type: :boolean }, chat_open: { type: :boolean },
                           actions: { type: :array, items: { "$ref" => "#/components/schemas/booking_event" } },
                           review: { type: :object, nullable: true, properties: { rating: { type: :integer }, body: { type: :string, nullable: true }, created_at: { type: :string } } },
@@ -272,6 +275,83 @@ RSpec.configure do |config|
                                                    status: { type: :string, enum: %w[open resolved] }, resolution: { type: :string, nullable: true },
                                                    created_at: { type: :string }, resolved_at: { type: :string, nullable: true } } },
                           address: { "$ref" => "#/components/schemas/booking_address" } }
+          },
+          payment: {
+            type: :object, required: %w[id method provider status amount refunded created_at],
+            properties: { id: { type: :string }, method: { type: :string, enum: %w[online cash] }, provider: { type: :string },
+                          status: { type: :string, enum: Payment::STATUSES }, amount: { "$ref" => "#/components/schemas/money" },
+                          refunded: { "$ref" => "#/components/schemas/money" }, captured_at: { type: :string, nullable: true },
+                          created_at: { type: :string } }
+          },
+          payment_order: {
+            type: :object, required: %w[payment checkout],
+            properties: { payment: { "$ref" => "#/components/schemas/payment" },
+                          checkout: { type: :object, required: %w[provider key_id order_id amount currency],
+                                      properties: { provider: { type: :string, enum: %w[fake razorpay] }, key_id: { type: :string, nullable: true },
+                                                    order_id: { type: :string }, amount: { type: :integer }, currency: { type: :string },
+                                                    name: { type: :string }, description: { type: :string },
+                                                    prefill: { type: :object, properties: { contact: { type: :string } } } } } }
+          },
+          invoice: {
+            type: :object, required: %w[id number booking_id issued_at subtotal tax total lines parties],
+            properties: { id: { type: :string }, number: { type: :string }, booking_id: { type: :string }, issued_at: { type: :string },
+                          subtotal: { "$ref" => "#/components/schemas/money" }, tax: { "$ref" => "#/components/schemas/money" },
+                          total: { "$ref" => "#/components/schemas/money" },
+                          lines: { type: :array, items: { type: :object, properties: { stage: { type: :string }, type: { type: :string }, description: { type: :string },
+                                                                                       quantity: { type: :number }, unit: { type: :string },
+                                                                                       unit_price_minor: { type: :integer }, amount_minor: { type: :integer } } } },
+                          parties: { type: :object, additionalProperties: true } }
+          },
+          earnings: {
+            type: :object, required: %w[balance jobs payouts],
+            properties: {
+              balance: { type: :object, required: %w[held owed net], properties: { held: { "$ref" => "#/components/schemas/money" },
+                                                                                  owed: { "$ref" => "#/components/schemas/money" },
+                                                                                  net: { "$ref" => "#/components/schemas/money" } } },
+              jobs: { type: :array, items: { type: :object, required: %w[booking_id category method amount commission tax earnings refunded paid_at],
+                properties: { booking_id: { type: :string }, category: { type: :string }, method: { type: :string },
+                              amount: { "$ref" => "#/components/schemas/money" }, commission: { "$ref" => "#/components/schemas/money" },
+                              tax: { "$ref" => "#/components/schemas/money" }, earnings: { "$ref" => "#/components/schemas/money" },
+                              refunded: { "$ref" => "#/components/schemas/money" }, paid_at: { type: :string } } } },
+              payouts: { type: :array, items: { type: :object, required: %w[id amount reference paid_at],
+                properties: { id: { type: :string }, amount: { "$ref" => "#/components/schemas/money" }, reference: { type: :string }, paid_at: { type: :string } } } }
+            }
+          },
+          admin_payment: {
+            allOf: [ { "$ref" => "#/components/schemas/payment" },
+                     { type: :object, required: %w[booking_id refundable refunds],
+                       properties: { booking_id: { type: :string }, customer_name: { type: :string, nullable: true }, worker_name: { type: :string, nullable: true },
+                                     commission: { allOf: [ { "$ref" => "#/components/schemas/money" } ], nullable: true },
+                                     worker_share: { allOf: [ { "$ref" => "#/components/schemas/money" } ], nullable: true },
+                                     refundable: { "$ref" => "#/components/schemas/money" },
+                                     refunds: { type: :array, items: { type: :object, required: %w[id amount status reason],
+                                                                                         properties: { id: { type: :string }, amount: { "$ref" => "#/components/schemas/money" },
+                                                                                                       status: { type: :string, enum: %w[pending processed failed] },
+                                                                                                       reason: { type: :string } } } } } } ]
+          },
+          worker_balance: {
+            type: :object, required: %w[worker_id held owed net],
+            properties: { worker_id: { type: :string }, name: { type: :string, nullable: true }, phone: { type: :string },
+                          held: { "$ref" => "#/components/schemas/money" }, owed: { "$ref" => "#/components/schemas/money" }, net: { "$ref" => "#/components/schemas/money" } }
+          },
+          reconciliation: {
+            type: :object, required: %w[currency from to online_captured_minor cash_recorded_minor refunded_minor payouts_minor commission_minor
+                                         tax_minor balances ledger_balanced ledger_debits_minor ledger_credits_minor issues],
+            properties: { currency: { type: :string }, from: { type: :string }, to: { type: :string },
+                          online_captured_minor: { type: :integer }, cash_recorded_minor: { type: :integer }, refunded_minor: { type: :integer },
+                          payouts_minor: { type: :integer }, commission_minor: { type: :integer }, tax_minor: { type: :integer },
+                          balances: { type: :object, additionalProperties: { type: :integer } }, ledger_balanced: { type: :boolean },
+                          ledger_debits_minor: { type: :integer }, ledger_credits_minor: { type: :integer },
+                          issues: { type: :object, required: %w[payments_without_ledger amount_mismatches pending_refunds stale_orders],
+                                    properties: { payments_without_ledger: { type: :array, items: { type: :string } },
+                                                                 amount_mismatches: { type: :array, items: { type: :string } },
+                                                                 pending_refunds: { type: :array, items: { type: :string } },
+                                                                 stale_orders: { type: :integer } } } }
+          },
+          commission_rule: {
+            type: :object, required: %w[id percent_bps fixed_minor effective_from],
+            properties: { id: { type: :integer }, city: { type: :string, nullable: true }, category: { type: :string, nullable: true },
+                          percent_bps: { type: :integer }, fixed_minor: { type: :integer }, effective_from: { type: :string } }
           },
           message: {
             type: :object, required: %w[id sender_role body created_at],

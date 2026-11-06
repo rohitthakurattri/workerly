@@ -110,7 +110,7 @@ RSpec.describe "Bookings exit gate", type: :request do
   describe "no path charges above approved amounts" do
     it "keeps the amount owed equal to the approved revisions through 300 random actions" do
       rng = Random.new(20_261_031)
-      events = Bookings::Transitions::EVENTS - %i[dispute resolve_dispute admin_cancel]
+      events = Bookings::Transitions::EVENTS - %i[dispute resolve_dispute admin_cancel pay refund]
       bookings = [ booked!, booked!(kind: "inspection"), booked!(amount_minor: 1), booked!(kind: "inspection") ]
 
       finished = 0

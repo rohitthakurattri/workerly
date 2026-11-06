@@ -43,7 +43,9 @@ module Idempotent
     existing
   end
 
+  # The stored response belongs to this user and passed authorization when it was made.
   def replay(record)
+    skip_authorization
     response.set_header("Idempotent-Replayed", "true")
     render json: record.response_body, status: record.response_status
   end

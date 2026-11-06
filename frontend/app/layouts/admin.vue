@@ -1,5 +1,5 @@
 <script setup lang="ts">
-const { canViewWorkers, canViewAudit, canViewRequests } = useStaff()
+const { canViewWorkers, canViewAudit, canViewRequests, canViewPayments, canMoveMoney } = useStaff()
 const { t } = useI18n()
 </script>
 
@@ -9,7 +9,7 @@ const { t } = useI18n()
       <SharedRoleSwitcher />
     </SharedAppHeader>
     <nav
-      class="border-b border-border bg-surface"
+      class="print:hidden border-b border-border bg-surface"
       :aria-label="t('admin.nav')"
     >
       <div class="mx-auto flex max-w-6xl gap-1 overflow-x-auto px-4">
@@ -46,6 +46,20 @@ const { t } = useI18n()
           class="admin-tab"
         >
           {{ t('admin.disputes') }}
+        </NuxtLink>
+        <NuxtLink
+          v-if="canViewPayments"
+          to="/payments"
+          class="admin-tab"
+        >
+          {{ t('admin.payments') }}
+        </NuxtLink>
+        <NuxtLink
+          v-if="canMoveMoney"
+          to="/finance"
+          class="admin-tab"
+        >
+          {{ t('admin.finance') }}
         </NuxtLink>
         <NuxtLink
           v-if="canViewAudit"

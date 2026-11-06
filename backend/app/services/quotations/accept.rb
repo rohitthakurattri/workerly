@@ -32,7 +32,9 @@ module Quotations
         check!(request, quotation, version, now)
 
         revision = quotation.current_revision
+        rule = CommissionRule.for(city: request.city, category: request.service_category, at: now)
         booking = Booking.create!(
+          commission_bps: rule&.percent_bps, commission_fixed_minor: rule&.fixed_minor,
           service_request: request, quotation:, customer:, worker_profile: quotation.worker_profile, kind: quotation.kind,
           status: "confirmed", approved_total_minor: revision.total_minor, currency_code: revision.currency_code,
           confirmed_at: now, address_revealed_at: now

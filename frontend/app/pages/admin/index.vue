@@ -6,7 +6,7 @@ import type { AdminWorkerSummary } from '~/types/models'
 definePageMeta({ middleware: ['role'], roles: ['admin', 'finance', 'support', 'verifier'] })
 const auth = useAuthStore()
 const api = useApi()
-const { canViewWorkers, canViewRequests } = useStaff()
+const { canViewWorkers, canViewRequests, canMoveMoney } = useStaff()
 const { t } = useI18n()
 const waiting = ref<number | null>(null)
 const attention = ref<number | null>(null)
@@ -90,7 +90,35 @@ onMounted(async () => {
           {{ t('admin.openBookings') }}
         </NuxtLink>
       </UiCard>
-      <UiCard v-if="!canViewWorkers && !canViewRequests">
+      <UiCard v-if="canMoveMoney">
+        <template #title>
+          {{ t('admin.finance') }}
+        </template>
+        <p class="mb-3 text-sm text-ink-muted">
+          {{ t('finance.dashboardHint') }}
+        </p>
+        <div class="flex flex-wrap gap-3">
+          <NuxtLink
+            to="/finance"
+            class="text-sm font-medium text-brand-700"
+          >
+            {{ t('finance.tabs.balances') }} →
+          </NuxtLink>
+          <NuxtLink
+            to="/finance?tab=reconciliation"
+            class="text-sm font-medium text-brand-700"
+          >
+            {{ t('finance.tabs.reconciliation') }} →
+          </NuxtLink>
+          <NuxtLink
+            to="/payments"
+            class="text-sm font-medium text-brand-700"
+          >
+            {{ t('admin.payments') }} →
+          </NuxtLink>
+        </div>
+      </UiCard>
+      <UiCard v-if="!canViewWorkers && !canViewRequests && !canMoveMoney">
         <UiEmptyState
           :title="t('admin.emptyTitle')"
           :description="t('admin.emptyBody')"

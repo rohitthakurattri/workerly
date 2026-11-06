@@ -60,7 +60,12 @@ Rails.application.routes.draw do
             post :messages, action: :post_message
             post :review
             post :disputes
+            get :invoice
           end
+          resources :payments, only: :create
+        end
+        resources :payments, only: :show do
+          post :verify, on: :member
         end
       end
 
@@ -92,9 +97,12 @@ Rails.application.routes.draw do
             post :cancel
             get :messages
             post :messages, action: :post_message
+            post :cash_received
+            get :invoice
           end
         end
         resources :reviews, only: :index
+        resources :earnings, only: :index
       end
 
       namespace :admin do
@@ -112,8 +120,25 @@ Rails.application.routes.draw do
         resources :disputes, only: :index do
           post :resolve, on: :member
         end
+        resources :payments, only: :index do
+          post :refunds, on: :member, action: :refund
+        end
+        scope :finance, controller: :finance do
+          get :balances
+          post :payouts, action: :create_payout
+          get :reconciliation
+          get :commission_rules
+          post :commission_rules, action: :create_commission_rule
+        end
         resources :audit_logs, only: :index
         resources :categories, only: %i[index create update]
+      end
+
+      post "webhooks/razorpay", to: "webhooks#razorpay"
+      if Rails.env.local?
+        namespace :dev do
+          post "fake_payments/:order_id/capture", to: "fake_payments#capture"
+        end
       end
 
       match "*path", to: "errors#not_found", via: :all

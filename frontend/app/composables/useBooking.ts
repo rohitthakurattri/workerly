@@ -63,6 +63,9 @@ export function useBooking<R extends Role>(role: R) {
   const complete = () => post('complete')
   const finalQuotation = (body: QuotationInput) => post('final_quotation', body)
   const changeOrder = (body: QuotationInput) => post('change_orders', body)
+  /** The customer paid in cash: the worker confirms the exact amount owed. */
+  const cashReceived = (amountMinor: number, key = randomKey()) =>
+    post('cash_received', { amount_minor: amountMinor }, { 'Idempotency-Key': key })
 
   // Customer events. One Idempotency-Key per decision, so a retried tap decides once.
   const decide = (revisionId: string, decision: 'approved' | 'rejected', key = randomKey()) =>
@@ -72,5 +75,5 @@ export function useBooking<R extends Role>(role: R) {
 
   const cancel = (reason?: string) => post('cancel', { reason })
 
-  return { booking, messages, load, loadMessages, send, live, schedule, checkIn, start, complete, finalQuotation, changeOrder, decide, review, dispute, cancel }
+  return { booking, messages, load, loadMessages, send, live, schedule, checkIn, start, complete, finalQuotation, changeOrder, cashReceived, decide, review, dispute, cancel }
 }

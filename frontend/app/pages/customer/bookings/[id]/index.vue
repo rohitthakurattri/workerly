@@ -161,6 +161,11 @@ const fmt = (iso: string) => new Intl.DateTimeFormat(locale.value, { weekday: 's
         </div>
       </UiCard>
 
+      <CustomerPayCard
+        :booking="booking"
+        @paid="load(booking.id)"
+      />
+
       <UiCard>
         <template #title>
           {{ t('booking.worker') }}

@@ -40,3 +40,5 @@ pa:
       dispute: "%{customer} ਨੇ %{category} ਕੰਮ ਵਿੱਚ ਸਮੱਸਿਆ ਦੱਸੀ"
       resolve_dispute: "%{category} ਕੰਮ ਦੀ ਦੱਸੀ ਸਮੱਸਿਆ ਸਹਾਇਤਾ ਟੀਮ ਨੇ ਹੱਲ ਕਰ ਦਿੱਤੀ"
       message: "%{name} ਦਾ ਨਵਾਂ ਸੁਨੇਹਾ"
+      pay: "ਭੁਗਤਾਨ ਮਿਲਿਆ: %{category} ਕੰਮ ਲਈ %{amount}"
+      refund: "ਤੁਹਾਡੀ %{category} ਬੁਕਿੰਗ ਦਾ ਰਿਫ਼ੰਡ ਹੋ ਗਿਆ ਹੈ"

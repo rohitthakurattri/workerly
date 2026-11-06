@@ -29,7 +29,8 @@ module Bookings
         reopened = after_status_change(booking, now)
         inside&.call(booking)
       end
-      Events.changed(booking, event, from:, role:, reopened:)
+      # Runs now, or after the caller's transaction commits (payments mark bookings paid inside theirs).
+      ActiveRecord.after_all_transactions_commit { Events.changed(booking, event, from:, role:, reopened:) }
       booking
     end
 
@@ -89,6 +90,17 @@ module Bookings
 
     def apply_dispute(booking, _params, **)
       booking.status_before_dispute = booking.status
+      nil
+    end
+
+    # Payment events (role "system"): fully paid, or fully refunded.
+    def apply_pay(booking, _params, **)
+      booking.status_before_dispute = "paid" if booking.disputed?
+      { paid_minor: booking.paid_minor }
+    end
+
+    def apply_refund(booking, _params, **)
+      booking.status_before_dispute = "refunded" if booking.disputed?
       nil
     end
 

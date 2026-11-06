@@ -3,13 +3,15 @@ import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import type { QuotationInput } from '~/types/models'
 import { ApiError } from '~/utils/api-error'
 import { fromLocalInput, toLocalInput } from '~/utils/bookings'
+import { randomKey } from '~/utils/id'
 import { formatMoney } from '~/utils/money'
+import { paymentTone } from '~/utils/payments'
 
 definePageMeta({ middleware: ['worker-profile'] })
 
 const TZ = 'Asia/Kolkata'
 const route = useRoute()
-const { booking: job, messages, load, loadMessages, send, live, schedule, checkIn, start, complete, finalQuotation, changeOrder, cancel } = useBooking('worker')
+const { booking: job, messages, load, loadMessages, send, live, schedule, checkIn, start, complete, finalQuotation, changeOrder, cashReceived, cancel } = useBooking('worker')
 const toast = useToast()
 const { t, locale } = useI18n()
 
@@ -20,6 +22,9 @@ const priceForm = ref<'final' | 'change' | null>(null)
 const confirmComplete = ref(false)
 const confirmCancel = ref(false)
 const cancelReason = ref('')
+const confirmCash = ref(false)
+// Kept after a failure so a retried tap records the cash once.
+let cashKey = ''
 const form = ref<{ showServerErrors: (e: unknown) => void } | null>(null)
 let stopLive = () => {}
 
@@ -71,6 +76,13 @@ async function sendPrice(body: QuotationInput) {
 }
 async function doComplete() {
   if (await run(complete, t('jobs.completed'))) confirmComplete.value = false
+}
+async function doCash() {
+  cashKey ||= randomKey()
+  if (await run(() => cashReceived(job.value!.outstanding.minor, cashKey), t('jobs.cashRecorded'))) {
+    cashKey = ''
+    confirmCash.value = false
+  }
 }
 async function doCancel() {
   if (await run(() => cancel(cancelReason.value.trim() || undefined), t('jobs.cancelled'))) confirmCancel.value = false
@@ -334,6 +346,61 @@ const fmt = (iso: string) => new Intl.DateTimeFormat(locale.value, { weekday: 's
         </p>
       </UiCard>
 
+      <UiCard
+        v-if="job.payable || job.payments.length"
+        :class="job.payable && 'border-warning'"
+        data-testid="payment-card"
+      >
+        <template #title>
+          <template v-if="job.payable">
+            {{ t('jobs.toCollect') }}: <span data-testid="outstanding">{{ formatMoney(job.outstanding) }}</span>
+          </template>
+          <template v-else>
+            ✓ {{ t('pay.paidInFull') }}
+          </template>
+        </template>
+        <div
+          v-if="job.payable"
+          class="flex flex-col gap-2"
+        >
+          <p class="text-sm text-ink-muted">
+            {{ t('jobs.collectHint') }}
+          </p>
+          <div>
+            <UiButton
+              variant="secondary"
+              data-testid="cash-received"
+              @click="confirmCash = true"
+            >
+              {{ t('jobs.cashReceived') }}
+            </UiButton>
+          </div>
+        </div>
+        <ul
+          v-if="job.payments.length"
+          class="mt-3 flex flex-col gap-1 text-sm"
+        >
+          <li
+            v-for="p in job.payments"
+            :key="p.id"
+            class="flex items-center justify-between gap-2"
+          >
+            <span>{{ t(`pay.method.${p.method}`) }}</span>
+            <span class="flex items-center gap-2">
+              <UiBadge :tone="paymentTone(p.status)">{{ t(`paymentStatus.${p.status}`) }}</UiBadge>
+              {{ formatMoney(p.amount) }}
+            </span>
+          </li>
+        </ul>
+        <NuxtLink
+          v-if="job.invoice_number"
+          :to="`/jobs/${job.id}/invoice`"
+          class="mt-3 inline-block text-sm text-brand-700"
+        >
+          {{ t('invoice.view', { number: job.invoice_number }) }} →
+        </NuxtLink>
+      </UiCard>
+
       <SharedBookingChat
         :messages="messages"
         me="worker"
@@ -387,5 +454,14 @@ const fmt = (iso: string) => new Intl.DateTimeFormat(locale.value, { weekday: 's
         </div>
       </form>
     </UiModal>
+    <UiConfirmDialog
+      v-model:open="confirmCash"
+      :title="t('jobs.cashTitle')"
+      :message="job ? t('jobs.cashBody', { amount: formatMoney(job.outstanding) }) : ''"
+      :confirm-label="t('jobs.cashConfirm')"
+      :cancel-label="t('common.cancel')"
+      :loading="busy"
+      @confirm="doCash"
+    />
   </div>
 </template>

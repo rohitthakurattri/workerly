@@ -166,6 +166,10 @@ onBeforeUnmount(() => stopLive())
           to="/reviews"
           class="text-sm text-brand-700"
         >{{ t('reviews.nav') }} →</NuxtLink>
+        <NuxtLink
+          to="/earnings"
+          class="text-sm text-brand-700"
+        >{{ t('earnings.nav') }} →</NuxtLink>
       </div>
       <WorkerJobAlerts />
     </template>

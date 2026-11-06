@@ -8,7 +8,7 @@ const { t } = useI18n()
 </script>
 
 <template>
-  <header class="sticky top-0 z-30 border-b border-border bg-surface/95 backdrop-blur">
+  <header class="sticky top-0 z-30 print:hidden border-b border-border bg-surface/95 backdrop-blur">
     <div class="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-x-3 gap-y-2 px-4 py-2.5">
       <NuxtLink
         to="/"

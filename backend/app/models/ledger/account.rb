@@ -9,10 +9,12 @@ module Ledger
     validates :kind, inclusion: { in: KINDS }
     validates :currency_code, length: { is: 3 }
 
+    # Savepoint so a lost creation race doesn't abort the caller's transaction.
     def self.for(kind, currency_code:, owner: nil)
-      find_or_create_by!(kind: kind.to_s, currency_code:, owner_type: owner&.class&.name, owner_id: owner&.id)
+      attrs = { kind: kind.to_s, currency_code:, owner_type: owner&.class&.base_class&.name, owner_id: owner&.id }
+      find_by(attrs) || transaction(requires_new: true) { create!(attrs) }
     rescue ActiveRecord::RecordNotUnique
-      retry
+      find_by!(attrs)
     end
 
     # Debits minus credits, in minor units.

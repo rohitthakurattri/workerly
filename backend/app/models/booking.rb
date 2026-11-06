@@ -19,6 +19,8 @@ class Booking < ApplicationRecord
   has_many :messages, -> { order(:created_at, :id) }, dependent: :restrict_with_error
   has_one :review, dependent: :restrict_with_error
   has_many :disputes, -> { order(:created_at, :id) }, dependent: :restrict_with_error
+  has_many :payments, -> { order(:created_at, :id) }, dependent: :restrict_with_error
+  has_one :invoice, dependent: :restrict_with_error
 
   validates :kind, inclusion: { in: Quotation::KINDS }
   validates :status, inclusion: { in: STATUSES }
@@ -39,6 +41,13 @@ class Booking < ApplicationRecord
 
     now < completed_at + Workerly.config.booking_contact_hours.hours
   end
+
+  # Statuses in which money can be owed: finished work, a visit fee after an inspection, or a
+  # visit fee on a booking cancelled after check-in.
+  PAYABLE_STATUSES = %w[completed disputed closed_after_inspection cancelled].freeze
+
+  def outstanding_minor = [ approved_total_minor - paid_minor, 0 ].max
+  def payable? = PAYABLE_STATUSES.include?(status) && outstanding_minor.positive?
 
   # Chat follows the same window as contact details.
   def chat_open?(now = Time.current) = contact_visible?(now)

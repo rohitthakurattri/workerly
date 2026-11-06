@@ -31,6 +31,11 @@ class BookingResource
   attribute(:completed_at) { |b| b.completed_at&.iso8601 }
   attribute(:cancelled_at) { |b| b.cancelled_at&.iso8601 }
   attributes :cancelled_by, :cancel_reason
+  attribute(:paid) { |b| Shared::Money.to_h(b.paid_minor, b.currency_code) }
+  attribute(:outstanding) { |b| Shared::Money.to_h(b.outstanding_minor, b.currency_code) }
+  attribute(:payable) { |b| b.payable? }
+  attribute(:payments) { |b| b.payments.select(&:settled?).map { |p| PaymentResource.new(p).to_h } }
+  attribute(:invoice_number) { |b| b.invoice&.number }
   attribute(:contact_visible) { |b| b.contact_visible? }
   attribute(:chat_open) { |b| b.chat_open? }
   attribute(:address) { |b| b.contact_visible? ? address_for(b.service_request) : nil }
@@ -45,7 +50,7 @@ class BookingResource
   private
 
   # Buttons the viewer can press now. Disputes have their own flag (window rules).
-  def visible_actions(b) = Bookings::Transitions.available(b, viewer_role) - %w[dispute admin_cancel resolve_dispute]
+  def visible_actions(b) = Bookings::Transitions.available(b, viewer_role) - %w[dispute admin_cancel resolve_dispute pay refund]
 
   def address_for(r)
     r.address_snapshot.merge("city" => r.city.slug, "location" => { lat: r.location_lat, lng: r.location_lng })

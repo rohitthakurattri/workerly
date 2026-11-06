@@ -54,3 +54,5 @@ hi:
       dispute: "%{customer} ने %{category} काम में समस्या बताई"
       resolve_dispute: "%{category} काम की बताई गई समस्या सहायता टीम ने सुलझा दी"
       message: "%{name} का नया संदेश"
+      pay: "भुगतान मिला: %{category} काम के लिए %{amount}"
+      refund: "आपकी %{category} बुकिंग का रिफ़ंड हो गया है"
