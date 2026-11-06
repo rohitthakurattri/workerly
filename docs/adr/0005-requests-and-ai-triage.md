@@ -24,4 +24,4 @@
 - **Prompt:** `config/ai/prompts/triage.yml`, versioned; the version is stored on every analysis.
 
 ## Maps
-- Leaflet 1.9.4 with OpenStreetMap tiles in development. **OSM's tile servers are not for production traffic:** set `NUXT_PUBLIC_MAP_TILE_URL` and `NUXT_PUBLIC_MAP_ATTRIBUTION` to a provider before launch, and allow it in the CSP (Phase 9).
+- Leaflet 1.9.4 with OpenStreetMap tiles in development. **OSM's tile servers are not for production traffic.** Production uses **MapTiler** (decided 2026-11-06): `NUXT_PUBLIC_MAP_PROVIDER=maptiler` and `NUXT_PUBLIC_MAPTILER_KEY`. See `app/utils/map-tiles.ts`; the CSP follows the provider automatically.

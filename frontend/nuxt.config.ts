@@ -41,12 +41,15 @@ export default defineNuxtConfig({
         worker: 'http://localhost:3002',
         admin: 'http://localhost:3003',
       },
-      // OpenStreetMap's own tiles are fine for development only (usage policy); production
-      // sets a tile provider via NUXT_PUBLIC_MAP_TILE_URL / NUXT_PUBLIC_MAP_ATTRIBUTION.
       // Origins that signed file URLs point at (S3 bucket / CDN), comma-separated, for the CSP.
       assetOrigins: '', // NUXT_PUBLIC_ASSET_ORIGINS
-      mapTileUrl: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-      mapAttribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+      // Map tiles (app/utils/map-tiles.ts). OpenStreetMap's own servers are for development only;
+      // production uses MapTiler: NUXT_PUBLIC_MAP_PROVIDER=maptiler + NUXT_PUBLIC_MAPTILER_KEY.
+      mapProvider: 'osm', // NUXT_PUBLIC_MAP_PROVIDER: osm | maptiler | custom
+      maptilerKey: '', // NUXT_PUBLIC_MAPTILER_KEY (restricted to our domains in MapTiler)
+      maptilerStyle: 'streets-v4', // NUXT_PUBLIC_MAPTILER_STYLE
+      mapTileUrl: '', // NUXT_PUBLIC_MAP_TILE_URL (provider "custom" only)
+      mapAttribution: '', // NUXT_PUBLIC_MAP_ATTRIBUTION (provider "custom" only)
     },
   },
 

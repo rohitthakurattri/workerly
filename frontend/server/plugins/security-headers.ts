@@ -1,5 +1,6 @@
 import { randomBytes } from 'node:crypto'
-import { addNonce, securityHeaders, usesOsmTiles } from '../../app/utils/security-headers'
+import { addNonce, securityHeaders } from '../../app/utils/security-headers'
+import { resolveMapTiles } from '../../app/utils/map-tiles'
 import type { AppTarget } from '../../app/targets'
 
 /**
@@ -10,8 +11,10 @@ import type { AppTarget } from '../../app/targets'
 export default defineNitroPlugin((nitro) => {
   const config = useRuntimeConfig()
   const production = !import.meta.dev
-  if (production && usesOsmTiles(config.public.mapTileUrl)) {
-    console.warn('[workerly] NUXT_PUBLIC_MAP_TILE_URL still points at tile.openstreetmap.org; their servers are not for production traffic.')
+  const tiles = resolveMapTiles(config.public)
+  if (tiles.problem) console.warn(`[workerly] ${tiles.problem}`)
+  if (production && tiles.provider === 'osm') {
+    console.warn('[workerly] Map tiles come from tile.openstreetmap.org, which is not for production traffic: set NUXT_PUBLIC_MAP_PROVIDER=maptiler and NUXT_PUBLIC_MAPTILER_KEY.')
   }
 
   nitro.hooks.hook('render:html', (html, { event }) => {
@@ -29,7 +32,7 @@ export default defineNitroPlugin((nitro) => {
       nonce: (event.context.cspNonce as string | undefined) ?? 'dev',
       apiBase: config.public.apiBase,
       assetOrigins: String(config.public.assetOrigins || '').split(',').map(s => s.trim()).filter(Boolean),
-      mapTileUrl: config.public.mapTileUrl,
+      mapTileUrl: tiles.url,
       // HSTS and upgrade-insecure-requests only when the deployment really is https (not the local stack).
       production: production && config.public.apiBase.startsWith('https://'),
     })

@@ -35,7 +35,7 @@ Rules and choices: `docs/adr/0011-pwa-security-headers-deployment.md`.
 | `APP_HOSTS` | API | allowed Host headers in production |
 | `FORCE_SSL`, `LOCAL_DISK_STORAGE` | API | local production-like stack only |
 | `NUXT_PUBLIC_ASSET_ORIGINS` | apps | file bucket / CDN origins for the CSP |
-| `NUXT_PUBLIC_MAP_TILE_URL` | apps | commercial tile provider before launch |
+| `NUXT_PUBLIC_MAP_PROVIDER`, `NUXT_PUBLIC_MAPTILER_KEY`, `NUXT_PUBLIC_MAPTILER_STYLE` | apps | MapTiler tiles in production (`osm` default is development only) |
 
 ## 3. Commands
 ```bash
@@ -54,5 +54,5 @@ cd frontend && npm run build:customer && node .output/customer/server/index.mjs 
 ## 5. Not done in Phase 9
 - **Any cloud deployment:** Terraform review/validate/apply, DNS, certificates, CI deploy workflow. Waiting for the go-ahead.
 - **Real SMS:** the MSG91 adapter now exists (ADR 0012); production needs the DLT registration, MSG91 key and template ids before it can boot.
-- **Tile provider choice** and its key.
+- **MapTiler key:** the provider is wired (MapTiler); create a key restricted to the app domains.
 - Offline viewing of already-loaded data (deliberately not cached: personal data on shared phones).

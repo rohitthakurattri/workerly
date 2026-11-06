@@ -195,7 +195,9 @@ resource "aws_ecs_task_definition" "web" {
       NUXT_PUBLIC_APP_URLS_WORKER   = "https://${local.hosts.worker}"
       NUXT_PUBLIC_APP_URLS_ADMIN    = "https://${local.hosts.admin}"
       NUXT_PUBLIC_ASSET_ORIGINS     = "https://${aws_s3_bucket.files.bucket_regional_domain_name}"
-      NUXT_PUBLIC_MAP_TILE_URL      = var.map_tile_url
+      NUXT_PUBLIC_MAP_PROVIDER      = "maptiler"
+      NUXT_PUBLIC_MAPTILER_KEY      = var.maptiler_key
+      NUXT_PUBLIC_MAPTILER_STYLE    = var.maptiler_style
     } : { name = k, value = v }]
     logConfiguration = local.log_config[each.key]
   }])

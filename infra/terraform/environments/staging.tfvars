@@ -2,7 +2,7 @@ env            = "staging"
 domain         = "staging.workerly.in"
 hosted_zone_id = "Z0000000000000000000" # the workerly.in zone
 alarm_email    = "alerts@workerly.in"
-map_tile_url   = "https://tiles.example.com/{z}/{x}/{y}.png" # set to the chosen provider (CSP allows its origin)
+maptiler_key   = "" # MapTiler → Account → API keys; restrict it to this environment's domains
 
 db_instance_class = "db.t4g.small"
 redis_node_type   = "cache.t4g.micro"

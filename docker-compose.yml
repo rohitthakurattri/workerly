@@ -50,6 +50,9 @@ services:
       NUXT_PUBLIC_APP_URLS_CUSTOMER: http://localhost:3101
       NUXT_PUBLIC_APP_URLS_WORKER: http://localhost:3102
       NUXT_PUBLIC_APP_URLS_ADMIN: http://localhost:3103
+      # MapTiler instead of OpenStreetMap: export NUXT_PUBLIC_MAP_PROVIDER=maptiler and NUXT_PUBLIC_MAPTILER_KEY before `up`.
+      NUXT_PUBLIC_MAP_PROVIDER: ${NUXT_PUBLIC_MAP_PROVIDER:-osm}
+      NUXT_PUBLIC_MAPTILER_KEY: ${NUXT_PUBLIC_MAPTILER_KEY:-}
     ports: ["3101:3000"]
     depends_on: [api]
   worker:

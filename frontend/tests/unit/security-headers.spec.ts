@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { addNonce, cableOrigin, securityHeaders, tileOrigin, usesOsmTiles } from '~/utils/security-headers'
+import { addNonce, cableOrigin, securityHeaders, tileOrigin } from '~/utils/security-headers'
 import { isIos, serviceWorkerUrl } from '~/utils/pwa'
 
 const base = { nonce: 'abc123', apiBase: 'https://api.workerly.in/api/v1', assetOrigins: ['https://wk-files.s3.ap-south-1.amazonaws.com'],
@@ -47,12 +47,11 @@ describe('security headers', () => {
     expect(addNonce('<script nonce="old">a</script>', 'n')).toBe('<script nonce="old">a</script>')
   })
 
-  it('derives origins and spots OpenStreetMap tiles', () => {
+  it('derives the tile and websocket origins', () => {
     expect(tileOrigin('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png')).toBe('https://*.tile.openstreetmap.org')
     expect(tileOrigin('')).toBeNull()
+    expect(tileOrigin('https://api.maptiler.com/maps/streets-v4/256/{z}/{x}/{y}{r}.png?key=abc')).toBe('https://api.maptiler.com')
     expect(cableOrigin('http://localhost:3000/api/v1')).toBe('ws://localhost:3000')
-    expect(usesOsmTiles('https://tile.openstreetmap.org/{z}/{x}/{y}.png')).toBe(true)
-    expect(usesOsmTiles('https://{s}.tiles.example.com/{z}/{x}/{y}.png')).toBe(false)
   })
 })
 

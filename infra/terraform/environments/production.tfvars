@@ -2,7 +2,7 @@ env            = "production"
 domain         = "workerly.in"
 hosted_zone_id = "Z0000000000000000000"
 alarm_email    = "alerts@workerly.in"
-map_tile_url   = "https://tiles.example.com/{z}/{x}/{y}.png" # set to the chosen provider
+maptiler_key   = "" # MapTiler → Account → API keys; restrict it to this environment's domains
 
 nat_per_az          = true
 db_instance_class   = "db.t4g.medium"

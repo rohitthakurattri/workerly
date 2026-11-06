@@ -97,9 +97,14 @@ variable "alarm_email" {
   type        = string
 }
 
-variable "map_tile_url" {
-  description = "Leaflet tile URL template from a commercial provider (OpenStreetMap's own servers are not for production)."
+variable "maptiler_key" {
+  description = "MapTiler browser key for map tiles, restricted to the app domains in MapTiler (it is public by nature)."
   type        = string
+}
+
+variable "maptiler_style" {
+  type    = string
+  default = "streets-v4"
 }
 
 variable "app_env" {

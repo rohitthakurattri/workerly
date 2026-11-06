@@ -98,5 +98,3 @@ export function addNonce(fragment: string, nonce: string): string {
   return fragment.replace(/<script(?![^>]*\snonce=)/g, `<script nonce="${nonce}"`)
 }
 
-/** Production should not use OpenStreetMap's own tile servers (their usage policy). */
-export const usesOsmTiles = (template?: string) => !!template && /^https?:\/\/([^/]*\.)?tile\.openstreetmap\.org(\/|$)/.test(template)

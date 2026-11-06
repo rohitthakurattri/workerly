@@ -3,6 +3,7 @@ import { onBeforeUnmount, onMounted, ref, shallowRef, watch } from 'vue'
 import type * as Leaflet from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import type { LatLng } from '~/types/models'
+import { resolveMapTiles } from '~/utils/map-tiles'
 
 /**
  * Tap or drag the pin to choose a point. `v-model` stays null until the user picks one
@@ -82,7 +83,9 @@ onMounted(async () => {
   if (!el.value) return
   const start = current()
   map.value = L.map(el.value).setView([start.lat, start.lng], 15)
-  L.tileLayer(config.public.mapTileUrl, { maxZoom: 19, attribution: config.public.mapAttribution }).addTo(map.value)
+  const tiles = resolveMapTiles(config.public)
+  if (tiles.problem) console.warn(`[map] ${tiles.problem}`)
+  L.tileLayer(tiles.url, { ...tiles.options, attribution: tiles.attribution }).addTo(map.value)
   const icon = L.divIcon({ className: 'wk-pin', html: '<span></span>', iconSize: [28, 36], iconAnchor: [14, 34] })
   marker = L.marker([start.lat, start.lng], { draggable: true, icon, title: props.label, alt: props.label }).addTo(map.value)
   marker.on('dragend', () => choose(marker!.getLatLng()))

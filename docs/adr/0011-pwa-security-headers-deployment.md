@@ -22,7 +22,12 @@
   - Development skips the CSP (Vite HMR).
 - **API** (`config/initializers/security_headers.rb`): JSON only, so `default-src 'none'; frame-ancestors 'none'`, DENY, nosniff, no-referrer, all permissions off (Swagger UI in development excepted).
 - **Hosts:** `APP_HOSTS` allow-list in production (`/up` exempt for the load balancer).
-- **Map tiles:** production logs a warning if `NUXT_PUBLIC_MAP_TILE_URL` still points at OpenStreetMap's own servers.
+- **Map tiles: MapTiler in production.**
+  - Settings: `NUXT_PUBLIC_MAP_PROVIDER=maptiler`, `NUXT_PUBLIC_MAPTILER_KEY`, and optionally `NUXT_PUBLIC_MAPTILER_STYLE` (default `streets-v4`); 256 px raster tiles, @2x on high-density screens.
+  - Tiles are credited to both MapTiler and OpenStreetMap; a free MapTiler plan also requires their logo.
+  - The key is visible in the browser, so restrict it to our domains in MapTiler's dashboard.
+  - The CSP allows exactly the tile host in use (`https://api.maptiler.com`), never the key.
+  - Production logs a warning while tiles still come from OpenStreetMap, or if MapTiler is chosen without a key (it then falls back to OSM).
 
 ## Refusing to run on stand-ins
 Production refuses to boot with `SMS_ADAPTER=fake` or `PAYMENT_ADAPTER=fake` (fake SMS would drop every login code), or Razorpay without a key id, unless `DEPLOY_ENV=staging`. In staging the fake SMS adapter writes codes to the log for testers.
