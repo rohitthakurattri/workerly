@@ -73,16 +73,28 @@ end
 # and fake SMS would drop every login code. Staging may opt in (DEPLOY_ENV=staging).
 module Workerly
   def self.check_deployment!(config = self.config, production: Rails.env.production?, env: ENV)
-    return if !production || config.deploy_env == "staging"
+    real_production = production && config.deploy_env != "staging"
+    check_razorpay_keys!(config, real_production)
+    return unless real_production
 
     fakes = { "SMS_ADAPTER" => config.sms_adapter, "PAYMENT_ADAPTER" => config.payment_adapter }.select { |_, v| v == "fake" }
     raise "Refusing to boot production with fake adapters: #{fakes.keys.join(', ')} (set real ones, or DEPLOY_ENV=staging)" if fakes.any?
-    raise "PAYMENT_ADAPTER=razorpay needs RAZORPAY_KEY_ID" if config.payment_adapter == "razorpay" && config.razorpay_key_id.blank?
     return unless config.sms_adapter == "msg91"
 
     raise "SMS_ADAPTER=msg91 needs MSG91_AUTH_KEY" if env["MSG91_AUTH_KEY"].blank?
     missing = Adapters::Sms::Msg91.missing_templates(env)
     raise "SMS_ADAPTER=msg91 needs a template id for every SMS: #{missing.map { |k| Adapters::Sms::Msg91.template_env(k) }.join(', ')}" if missing.any?
+  end
+
+  # Real money only in production, and only real money there: live keys (rzp_live_) anywhere else
+  # would charge real cards while testing; test keys (rzp_test_) in production would take nothing.
+  def self.check_razorpay_keys!(config, real_production)
+    return unless config.payment_adapter == "razorpay"
+
+    key = config.razorpay_key_id.to_s
+    raise "PAYMENT_ADAPTER=razorpay needs RAZORPAY_KEY_ID" if key.empty?
+    raise "Production needs live Razorpay keys (rzp_live_…), got a test key" if real_production && !key.start_with?("rzp_live_")
+    raise "Refusing live Razorpay keys outside production (#{config.deploy_env}): use test keys (rzp_test_…)" if !real_production && key.start_with?("rzp_live_")
   end
 end
 

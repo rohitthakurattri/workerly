@@ -46,6 +46,20 @@ docker compose --profile app up --build   # API :3100, customer :3101, worker :3
 docker compose logs -f jobs | grep FakeSms   # login codes (sent by Sidekiq; staging mode, fake SMS)
 ```
 
+## Razorpay test mode (local)
+
+Real Razorpay checkout with test money, no tunnel needed:
+
+1. Razorpay dashboard → switch to **Test Mode** → Account & Settings → API Keys → generate a test key.
+2. In `backend/.env`: `PAYMENT_ADAPTER=razorpay`, `RAZORPAY_KEY_ID=rzp_test_…`, `RAZORPAY_KEY_SECRET=…`; restart the API and Sidekiq.
+3. Finish a job, then **Pay** as the customer and use Razorpay's test details:
+   - UPI: `success@razorpay` to pay, `failure@razorpay` to fail;
+   - cards: see https://razorpay.com/docs/payments/payments/test-card-details/
+4. The booking turns paid within a few seconds: after checkout the API asks Razorpay what happened (webhooks can't reach `localhost`).
+   - Refunds from Admin → Payments work the same way: a refund Razorpay reports as pending is completed by `Payments::SyncPendingJob` (every 5 minutes).
+
+Live keys are refused outside production, and test keys in production.
+
 ## Tests
 
 ```bash

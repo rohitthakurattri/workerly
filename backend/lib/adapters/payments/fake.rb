@@ -15,6 +15,11 @@ module Adapters
         { id: "rfnd_fake_#{SecureRandom.hex(8)}", payment_id: provider_payment_id, amount: amount_minor, status: "processed", notes: }
       end
 
+      # The fake gateway reports through its signed webhook (dev route), so there's nothing to pull.
+      def order_payments(_order_id) = []
+      def fetch_refund(refund_id) = { id: refund_id, status: "processed" }
+      def test_mode? = true
+
       def checkout_signature_valid?(order_id:, payment_id:, signature:)
         Payments.secure_compare(Payments.hmac(Workerly.config.razorpay_key_secret, "#{order_id}|#{payment_id}"), signature)
       end

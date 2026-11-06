@@ -13,7 +13,14 @@
 
 ## Rules
 - **The server decides every amount.** The app never sends what to charge: an order is created for exactly what's outstanding (`Bookings::AmountDue` – approvals only, see ADR 0008). Cash must match it to the paisa.
-- **Only the signed webhook makes anything paid.** The checkout callback (`/verify`) checks the signature and remembers the gateway payment id, but status changes come from `payment.captured` / `payment.failed` / `refund.*` webhooks, verified against the raw body. Each event is stored once (`payment_events`, unique provider + event id) and applied in the same transaction, so redeliveries change nothing. A captured amount that differs from the order becomes `amount_mismatch` for finance.
+- **Only Razorpay makes anything paid**: its signed webhook, or its own answer when we ask (`Payments::Sync`). We ask:
+  - after a checkout callback whose signature checks out;
+  - while the app polls an order (at most every 3 s);
+  - every 5 minutes for orders and refunds still pending after 2 minutes (`Payments::SyncPendingJob`).
+
+  This keeps local test mode working (no webhook can reach localhost) and covers lost webhooks in production. An order is only marked failed by this path after 30 minutes, since customers can retry inside the same checkout.
+- **Keys:** test keys (`rzp_test_`) everywhere but production, live keys (`rzp_live_`) only in production; checked at boot.
+- **The browser is never trusted.** The checkout callback (`/verify`) only checks the signature. Status changes come from Razorpay: `payment.captured` / `payment.failed` / `refund.*` webhooks verified against the raw body, or `Payments::Sync`'s authenticated API calls. Each event is stored once (`payment_events`, unique provider + event id) and applied in the same transaction, so redeliveries change nothing. A captured amount that differs from the order becomes `amount_mismatch` for finance.
 - **Idempotency everywhere money moves:** creating an order, cash, refunds and payouts all take an `Idempotency-Key`; an open unpaid order for the same amount is reused.
 - **Commission is snapshotted at booking** (`Quotations::Accept` copies the matching rule onto the booking), so a rule change never re-prices accepted work. Rules are never edited: a new rule with a later `effective_from` replaces the old one; the most specific (city + category › category › city › everywhere) wins. Creating one is audited.
 - **Double-entry ledger** (`Ledger::Post`, balanced per currency, idempotent by key, append-only — enforced by Postgres triggers, as are invoices, payment events and the other history tables):
