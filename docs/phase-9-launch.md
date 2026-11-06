@@ -53,6 +53,6 @@ cd frontend && npm run build:customer && node .output/customer/server/index.mjs 
 
 ## 5. Not done in Phase 9
 - **Any cloud deployment:** Terraform review/validate/apply, DNS, certificates, CI deploy workflow. Waiting for the go-ahead.
-- **Real SMS adapter (D6):** without it production can't boot (by design).
+- **Real SMS:** the MSG91 adapter now exists (ADR 0012); production needs the DLT registration, MSG91 key and template ids before it can boot.
 - **Tile provider choice** and its key.
 - Offline viewing of already-loaded data (deliberately not cached: personal data on shared phones).

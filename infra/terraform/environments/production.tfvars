@@ -16,7 +16,13 @@ admin_allowed_cidrs = [] # e.g. ["203.0.113.0/24"] for the office / VPN
 
 # Decisions D3-D6 land here. Production will not boot on fake SMS or payments.
 app_env = {
-  SMS_ADAPTER           = "fake" # D6: replace with msg91 or twilio once the adapter exists
+  SMS_ADAPTER           = "msg91" # D6. Put MSG91_AUTH_KEY in the app secret; template ids below.
+  MSG91_TEMPLATE_OTP                      = ""
+  MSG91_TEMPLATE_LEAD_NEW                 = ""
+  MSG91_TEMPLATE_QUOTE_ACCEPTED           = ""
+  MSG91_TEMPLATE_WORKER_APPROVED          = ""
+  MSG91_TEMPLATE_WORKER_CHANGES_REQUESTED = ""
+  MSG91_TEMPLATE_WORKER_REJECTED          = ""
   PAYMENT_ADAPTER       = "razorpay"
   RAZORPAY_KEY_ID       = "rzp_live_xxxxxxxxxxxx"
   AI_ADAPTER            = "fake"

@@ -100,7 +100,6 @@ en:
     lead_new:
       title: "New job: %{category}"
       body: "In %{locality}. Open it to send a quote."
-      sms: "New Workerly job near you: %{category} in %{locality}. Open the Workerly Pro app to see it."
     request_matched:
       title:
         one: "Your request was sent to 1 nearby worker"
@@ -116,7 +115,6 @@ en:
     quote_accepted:
       title: "You got the job: %{category}"
       body: "In %{locality}. Open it for the address and the customer's number."
-      sms: "Workerly: your quote for %{category} in %{locality} was accepted. Open the Workerly Pro app for the address."
     quote_declined:
       title: "Your %{category} quote was declined"
     quote_lost:

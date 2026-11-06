@@ -7,7 +7,12 @@ module Identity
     retry_on StandardError, wait: 5.seconds, attempts: 3
 
     def perform(phone, code)
-      Adapters::Sms.adapter.deliver(to: phone, body: Adapters::Sms.otp_message(code))
+      Adapters::Sms.adapter.deliver(to: phone, message: Adapters::Sms.otp_message(code))
+    rescue Adapters::Sms::Error => e
+      raise if e.retryable?
+
+      # Misconfiguration or a refused template: retrying won't help, and the customer can ask again.
+      Rails.logger.error("[SendOtpSms] not sent: #{e.code} #{e.message}")
     end
   end
 end

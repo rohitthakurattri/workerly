@@ -22,7 +22,8 @@ module Matching
         title: I18n.t("notifications.lead_new.title", category:, locale: profile.user.locale),
         body: I18n.t("notifications.lead_new.body", locality:, locale: profile.user.locale),
         url: "/leads/#{request.public_id}", data: { lead_id: request.public_id },
-        sms: Workerly.config.lead_sms_fallback ? I18n.t("notifications.lead_new.sms", category:, locality:, locale: :en) : nil
+        # SMS uses the registered English template, so the category goes in English too.
+        sms: Workerly.config.lead_sms_fallback ? Adapters::Sms.message(:lead_new, category: request.service_category.name(:en), locality:) : nil
       )
       inv.update!(notified_at: Time.current, notified_via: (n.channels & %w[push sms]).first || "none")
     end

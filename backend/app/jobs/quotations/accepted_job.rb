@@ -19,7 +19,7 @@ module Quotations
         title: I18n.t("notifications.quote_accepted.title", category:, locale: user.locale),
         body: I18n.t("notifications.quote_accepted.body", locality:, locale: user.locale),
         url: "/jobs/#{booking.public_id}", data: { booking_id: booking.public_id },
-        sms: I18n.t("notifications.quote_accepted.sms", category:, locality:, locale: :en)
+        sms: Adapters::Sms.message(:quote_accepted, category: request.service_category.name(:en), locality:)
       )
       RequestChannel.broadcast_to(request, { type: "request.booked", booking_id: booking.public_id })
 

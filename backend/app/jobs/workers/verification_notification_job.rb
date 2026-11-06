@@ -1,20 +1,20 @@
 module Workers
-  # Tells the worker about a verification decision by SMS. In-app and push
-  # notifications replace most of this once the Notifications module lands (Phase 4).
+  # Tells the worker about a verification decision by SMS (registered templates, see
+  # config/sms_templates.yml).
   class VerificationNotificationJob < ApplicationJob
     queue_as :default
     self.log_arguments = false
 
-    MESSAGES = {
-      "approved" => "Your Workerly Pro profile is approved. You will now receive job requests near you.",
-      "changes_requested" => "Your Workerly Pro profile needs a few changes. Open the app to see what to fix.",
-      "rejected" => "Your Workerly Pro application was not approved. Open the app for details."
-    }.freeze
+    TEMPLATES = { "approved" => :worker_approved, "changes_requested" => :worker_changes_requested, "rejected" => :worker_rejected }.freeze
 
     def perform(profile_id, decision)
-      message = MESSAGES[decision] or return
+      template = TEMPLATES[decision] or return
       profile = WorkerProfile.includes(:user).find(profile_id)
-      Adapters::Sms.adapter.deliver(to: profile.user.phone_e164, body: message)
+      Adapters::Sms.adapter.deliver(to: profile.user.phone_e164, message: Adapters::Sms.message(template))
+    rescue Adapters::Sms::Error => e
+      raise if e.retryable?
+
+      Rails.logger.error("[VerificationNotification] SMS not sent: #{e.code} #{e.message}")
     end
   end
 end

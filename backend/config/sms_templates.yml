@@ -1,0 +1,24 @@
+# Every SMS Workerly sends. In India each one must be registered on the DLT portal (with the
+# sender header) and then as an MSG91 template; the text below is what to register, character
+# for character. %{name} is a variable: register it as ##name## in MSG91 (same name) and as
+# {#var#} on DLT. Values are clipped to 30 characters (DLT's limit per variable).
+# Each template's MSG91 id goes in the environment: MSG91_TEMPLATE_<KEY> (e.g. MSG91_TEMPLATE_OTP).
+otp:
+  # The last line lets Android/Chrome fill the code in automatically (WebOTP).
+  text: "%{code} is your Workerly login code. It is valid for 5 minutes. Do not share it with anyone.\n\n@workerly.in #%{code}"
+  vars: [code]
+lead_new:
+  text: "New Workerly job near you: %{category} in %{locality}. Open the Workerly Pro app to see it."
+  vars: [category, locality]
+quote_accepted:
+  text: "Workerly: your quote for %{category} in %{locality} was accepted. Open the Workerly Pro app for the address."
+  vars: [category, locality]
+worker_approved:
+  text: "Your Workerly Pro profile is approved. You will now receive job requests near you."
+  vars: []
+worker_changes_requested:
+  text: "Your Workerly Pro profile needs a few changes. Open the app to see what to fix."
+  vars: []
+worker_rejected:
+  text: "Your Workerly Pro application was not approved. Open the app for details."
+  vars: []

@@ -72,12 +72,17 @@ end
 # A real deployment must not run on stand-ins: fake payments would let orders sit unpaid forever
 # and fake SMS would drop every login code. Staging may opt in (DEPLOY_ENV=staging).
 module Workerly
-  def self.check_deployment!(config = self.config, production: Rails.env.production?)
+  def self.check_deployment!(config = self.config, production: Rails.env.production?, env: ENV)
     return if !production || config.deploy_env == "staging"
 
     fakes = { "SMS_ADAPTER" => config.sms_adapter, "PAYMENT_ADAPTER" => config.payment_adapter }.select { |_, v| v == "fake" }
     raise "Refusing to boot production with fake adapters: #{fakes.keys.join(', ')} (set real ones, or DEPLOY_ENV=staging)" if fakes.any?
     raise "PAYMENT_ADAPTER=razorpay needs RAZORPAY_KEY_ID" if config.payment_adapter == "razorpay" && config.razorpay_key_id.blank?
+    return unless config.sms_adapter == "msg91"
+
+    raise "SMS_ADAPTER=msg91 needs MSG91_AUTH_KEY" if env["MSG91_AUTH_KEY"].blank?
+    missing = Adapters::Sms::Msg91.missing_templates(env)
+    raise "SMS_ADAPTER=msg91 needs a template id for every SMS: #{missing.map { |k| Adapters::Sms::Msg91.template_env(k) }.join(', ')}" if missing.any?
   end
 end
 
