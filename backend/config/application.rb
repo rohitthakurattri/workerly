@@ -40,6 +40,8 @@ module Workerly
     # Middleware like session, flash, cookies can be added back manually.
     # Skip views, helpers and assets when generating a new resource.
     config.api_only = true
+    # ImageMagick, not libvips (ADR 0005): the servers and the Docker image have ImageMagick only.
+    config.active_storage.variant_processor = :mini_magick
 
     # Refresh tokens travel in an HttpOnly cookie, so cookies are needed in API mode.
     config.middleware.use ActionDispatch::Cookies
@@ -54,7 +56,8 @@ module Workerly
     config.active_storage.service_urls_expire_in = 5.minutes
     # Production serves files straight from S3 signed URLs; the Rails blob routes
     # (which never expire) are only needed for the local Disk service.
-    config.active_storage.draw_routes = !Rails.env.production?
+    # ...except the local production-like stack, which keeps files on disk (LOCAL_DISK_STORAGE=1) and needs them.
+    config.active_storage.draw_routes = !Rails.env.production? || ENV["LOCAL_DISK_STORAGE"] == "1"
     config.time_zone = "UTC"
     config.i18n.available_locales = %i[en hi pa]
     config.i18n.default_locale = :en

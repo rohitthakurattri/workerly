@@ -18,7 +18,7 @@ services:
   # --- Local production-like stack: the real images, production builds, plain http on localhost.
   # docker compose --profile app up --build   (API :3100, customer :3101, worker :3102, admin :3103)
   # Runs as DEPLOY_ENV=staging, so fake SMS/payments are allowed: read login codes with
-  #   docker compose logs -f api jobs | grep FakeSms
+  #   docker compose logs -f jobs | grep FakeSms
   migrate:
     profiles: [app]
     build: ./backend

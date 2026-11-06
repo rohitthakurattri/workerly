@@ -10,7 +10,14 @@
   - offline navigation shows the offline page;
   - manifest served;
   - OSM tile warning logged.
-- Docker: the `workerly-web` image builds. **Not yet verified at commit time:** the `workerly-api` image build (it was still running) and a full run of `docker compose --profile app`.
+- **Stack check (2026-11-06):**
+  - **Setup:** the `workerly-web` image (all three apps, healthy) ran against the API and Sidekiq from source in production mode with the profile's settings.
+  - **Customer journey in Chromium:** OTP login using the code from the staging log, service worker active, voice note recorded → transcribed by Sidekiq → played back, photo uploaded and shown, triage pre-selected Plumber, address on the map, request submitted. **No CSP violations.**
+  - **Other checks:** API headers, `APP_HOSTS` (unknown host → 403) and CORS all correct.
+  - **Fixed:**
+    - Active Storage now uses ImageMagick in every environment, not the libvips default;
+    - the local disk stack draws the file routes it needs.
+  - **`workerly-api` image:** not built yet. This connection downloads Debian packages at about 5–15 KB/s and rubygems.org at about 2 KB/s. The Dockerfile is unchanged; build it on a faster connection.
 - RSpec: 523 examples. Vitest: 87. RuboCop, ESLint and typecheck (all 3 apps) are clean. Playwright was not re-run in this phase.
 
 Rules and choices: `docs/adr/0011-pwa-security-headers-deployment.md`.
@@ -38,7 +45,7 @@ cd frontend && npm run build:customer && node .output/customer/server/index.mjs 
 ```
 
 ## 4. Manual verification
-1. `docker compose --profile app up --build`, open http://localhost:3101, log in (code from the logs).
+1. `docker compose --profile app up --build`, open http://localhost:3101, log in (the code is in the **jobs** log: `docker compose logs jobs | grep FakeSms`).
 2. DevTools → Application: manifest with icons, service worker `sw.js?app=customer` active. Network → Offline, reload: the offline page.
 3. Response headers of the page: CSP with a nonce; no CSP errors in the console while you post a job with a photo and a voice note.
 4. On an Android phone (same network, or the dev servers): "Install the app" card → installs with the right icon and colour.

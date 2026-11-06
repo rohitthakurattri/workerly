@@ -43,7 +43,7 @@ The real Docker images, production builds, on plain http:
 
 ```bash
 docker compose --profile app up --build   # API :3100, customer :3101, worker :3102, admin :3103
-docker compose logs -f api jobs | grep FakeSms   # login codes (staging mode, fake SMS)
+docker compose logs -f jobs | grep FakeSms   # login codes (sent by Sidekiq; staging mode, fake SMS)
 ```
 
 ## Tests
