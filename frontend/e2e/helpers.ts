@@ -57,19 +57,38 @@ export async function postRequest(page: Page, description: string) {
   await page.getByRole('button', { name: 'Continue' }).click()
   await page.getByRole('radio', { name: /Plumber/ }).check({ force: true }) // the styled label covers the input
   await page.getByRole('button', { name: 'Continue' }).click()
-  await page.getByText('Pin set. Drag it to adjust.').waitFor()
-  await page.getByLabel('House / flat number and street').fill('House 77')
-  await page.getByLabel('Sector or area').fill('Sector 70')
-  await page.getByLabel('PIN code').fill('160071')
-  await page.getByRole('button', { name: 'Save address' }).click()
-  await page.getByRole('button', { name: 'Continue' }).click()
+  // A first-time customer adds an address on the map; a returning one has theirs pre-selected.
+  const newAddress = page.getByText('Pin set. Drag it to adjust.')
+  await newAddress.or(page.getByText('House 77').first()).first().waitFor()
+  if (await newAddress.isVisible()) {
+    await page.getByLabel('House / flat number and street').fill('House 77')
+    await page.getByLabel('Sector or area').fill('Sector 70')
+    await page.getByLabel('PIN code').fill('160071')
+    await page.getByRole('button', { name: 'Save address' }).click() // saves and moves on to "when"
+  }
+  else {
+    await page.getByRole('button', { name: 'Continue' }).click() // keep the pre-selected address
+  }
+  await page.getByRole('button', { name: 'Continue' }).click() // "when": the default (flexible) is fine
   await page.getByRole('button', { name: 'Send request' }).click()
+}
+
+// The API refuses a new code for the same phone within 30 s (Identity::RequestOtp::RESEND_AFTER).
+// Tests that log the same phone in back to back wait that out, as a real user would.
+const RESEND_AFTER_MS = 31_000
+const lastCodeAt = new Map<string, number>()
+
+async function waitForResend(phone: string) {
+  const wait = (lastCodeAt.get(phone) ?? 0) + RESEND_AFTER_MS - Date.now()
+  if (wait > 0) await new Promise(r => setTimeout(r, wait))
+  lastCodeAt.set(phone, Date.now())
 }
 
 /** Consumer OTP login on one of the apps (customer :3001 or worker :3002). */
 export async function login(page: Page, base: string, phone: string) {
   await page.goto(`${base}/login`)
   await page.getByLabel('Mobile number').fill(phone.replace('+91', ''))
+  await waitForResend(phone)
   const since = new Date()
   await page.getByRole('button', { name: 'Send code' }).click()
   await page.getByLabel('6-digit code').fill(await otpFor(phone, since))
