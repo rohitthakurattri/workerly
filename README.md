@@ -60,6 +60,8 @@ Real Razorpay checkout with test money, no tunnel needed:
 
 Live keys are refused outside production, and test keys in production.
 
+Browser test against real Razorpay (pays through Razorpay's demo bank): `RAZORPAY_E2E=1 npx playwright test e2e/razorpay-test-mode.spec.ts`. The rest of the browser suite uses the fake checkout, so run it with `PAYMENT_ADAPTER=fake`.
+
 ## Tests
 
 ```bash
