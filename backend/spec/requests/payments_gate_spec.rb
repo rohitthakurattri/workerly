@@ -161,8 +161,7 @@ RSpec.describe "Payments exit gate", type: :request do
     self.use_transactional_tests = false
 
     after do
-      conn = ActiveRecord::Base.connection
-      conn.truncate_tables(*(conn.tables - %w[schema_migrations ar_internal_metadata]))
+      truncate_committed_data!
     end
 
     it "posts once when deliveries race, with the same or different event ids" do

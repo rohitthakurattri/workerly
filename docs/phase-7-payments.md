@@ -4,7 +4,8 @@
 **Status (2026-11-06):** met locally.
 - `spec/services/payments/money_flow_spec.rb` + `spec/requests/payments_gate_spec.rb`: online, cash, partial and full refunds, payouts with cash offset, replayed and forged webhooks, amount mismatches; the ledger is checked balanced after each step.
 - `e2e/payments.spec.ts`: a ₹1,000 job paid online through the fake checkout → invoice `WK/2026-27/…` → worker sees ₹1,000 − ₹100 commission → finance refunds ₹200 → records a payout → reconciliation shows the ledger balanced; and a job paid in cash, confirmed by the worker, visible on both screens.
-- RSpec: 488 examples. Vitest: 76. Playwright: `payments.spec.ts` 2/2 (the earlier specs were not re-run this phase). RuboCop, Brakeman, bundler-audit, ESLint and typecheck (all 3 apps) are clean.
+- `spec/db/append_only_triggers_spec.rb`: Postgres refuses UPDATE, DELETE and TRUNCATE on all 14 append-only tables (ledger, invoices, payment events, approvals, revisions, history, audit…), from any client; the trigger list must match the `AppendOnly` models.
+- RSpec: 502 examples. Vitest: 76. Playwright: `payments.spec.ts` 2/2 (the earlier specs were not re-run this phase). RuboCop, Brakeman, bundler-audit, ESLint and typecheck (all 3 apps) are clean.
 
 Rules and defaults: `docs/adr/0009-payments-ledger-payouts.md`.
 
@@ -40,6 +41,12 @@ cd ../frontend && npm run gen:api
 ```
 New ENV: `PAYMENT_ADAPTER` (`fake` default), `RAZORPAY_KEY_ID`, `RAZORPAY_KEY_SECRET`, `RAZORPAY_WEBHOOK_SECRET`, `INVOICE_PREFIX`. For Razorpay test mode, point a webhook at `https://<api>/api/v1/webhooks/razorpay` with events `payment.captured`, `payment.failed`, `order.paid`, `refund.processed`, `refund.failed`.
 
+### Append-only tables in Postgres
+`db/migrate/20261106120000_enforce_append_only_tables.rb` adds `workerly_append_only()` and, on each of the 14 tables whose models include `AppendOnly`, a row trigger (UPDATE/DELETE) and a TRUNCATE trigger. Refusals raise SQLSTATE `WK001`: *"UPDATE on invoices refused: the table is append-only"*.
+- **Schema stays `schema.rb`.** `config/initializers/schema_dumper.rb` appends our `workerly_*` functions and triggers to it as `execute` blocks, so `db:schema:load` (test, CI, new machines) recreates them. `structure.sql` was not adopted: it needs `pg_dump`/`psql` matching Postgres 16 on every machine, and this one has neither (Postgres runs only in Docker).
+- **Escape hatch** for retention and legal erasure only: `AppendOnly.rewriting { … }` in code, or `BEGIN; SET LOCAL workerly.allow_history_rewrite = 'on'; …; COMMIT;` in psql. It ends with the block/transaction. Used by `Requests::PurgeStaleDraftsJob` (an abandoned draft's AI log) and the cleanup of the thread-race specs.
+- A new append-only table needs its own trigger in a migration; the spec fails until it has one.
+
 ## 4. Manual verification
 1. Seed; log in as *Job Plumber* (`9814000014`) on :3002 and as a customer on :3001. Post a job, send a fixed ₹1,000 labour quote, book it.
 2. No **Pay** card yet. Worker: set a time → **Start work** → **Mark job done**.
@@ -50,12 +57,12 @@ New ENV: `PAYMENT_ADAPTER` (`fake` default), `RAZORPAY_KEY_ID`, `RAZORPAY_KEY_SE
 7. Admin → **Finance** → **Record payout** for Job Plumber with a UTR → the balance drops. **Reconciliation** → *Ledger balanced*.
 8. On another job, try **Fail** in the test checkout: the customer is told it failed and can pay again.
 9. On another job, worker → **Customer paid me in cash** → confirm. Both sides show paid; Earnings shows *Commission you owe*, which the next payout offsets.
-10. Admin → Finance → **Commission rules**: add 12% for one category from next month; it shows as *upcoming*, and bookings made before then keep 10%.
+10. `bin/rails dbconsole` → `UPDATE invoices SET total_minor = 0;` → *ERROR: UPDATE on invoices refused: the table is append-only*.
+11. Admin → Finance → **Commission rules**: add 12% for one category from next month; it shows as *upcoming*, and bookings made before then keep 10%.
 
 ## 5. Not done in Phase 7
 - **Razorpay Route / automatic worker payouts and worker bank/UPI details with KYC:** wait for D3. Payouts are recorded manually.
 - **Real commission numbers:** D4. The 10% default is a seed and can be changed in the admin app.
-- **DB triggers for append-only tables and the move to `structure.sql`:** planned for this phase and not done. Ledger entries, invoices and payment events are append-only in the app (`AppendOnly`), not in Postgres yet.
 - **GST invoices** (GSTIN, HSN/SAC, place of supply): wait for the CA. Tax lines are 0.
 - Refunds for cash payments, customer-initiated refund requests, and invoice PDFs generated on the server (the browser's print-to-PDF covers it for now).
 - **CSP for checkout.razorpay.com:** Phase 9, with the rest of the CSP.

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_31_140000) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_06_120000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "citext"
   enable_extension "pg_catalog.plpgsql"
@@ -878,4 +878,106 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_31_140000) do
   add_foreign_key "worker_skills", "worker_profiles"
   add_foreign_key "worker_verifications", "users", column: "admin_id"
   add_foreign_key "worker_verifications", "worker_profiles"
+
+  # Functions and triggers (config/initializers/schema_dumper.rb)
+  execute <<~'SQL'
+    CREATE OR REPLACE FUNCTION public.workerly_append_only()
+     RETURNS trigger
+     LANGUAGE plpgsql
+    AS $function$
+    BEGIN
+      IF current_setting('workerly.allow_history_rewrite', true) = 'on' THEN
+        IF TG_LEVEL = 'STATEMENT' THEN RETURN NULL; END IF;
+        IF TG_OP = 'DELETE' THEN RETURN OLD; END IF;
+        RETURN NEW;
+      END IF;
+      RAISE EXCEPTION '% on % refused: the table is append-only', TG_OP, TG_TABLE_NAME
+        USING ERRCODE = 'WK001', HINT = 'Write a new row instead (reversal, new revision, new rule).';
+    END;
+    $function$
+  SQL
+  execute <<~'SQL'
+    CREATE TRIGGER workerly_append_only BEFORE DELETE OR UPDATE ON public.admin_actions FOR EACH ROW EXECUTE FUNCTION workerly_append_only()
+  SQL
+  execute <<~'SQL'
+    CREATE TRIGGER workerly_append_only_truncate BEFORE TRUNCATE ON public.admin_actions FOR EACH STATEMENT EXECUTE FUNCTION workerly_append_only()
+  SQL
+  execute <<~'SQL'
+    CREATE TRIGGER workerly_append_only BEFORE DELETE OR UPDATE ON public.ai_analyses FOR EACH ROW EXECUTE FUNCTION workerly_append_only()
+  SQL
+  execute <<~'SQL'
+    CREATE TRIGGER workerly_append_only_truncate BEFORE TRUNCATE ON public.ai_analyses FOR EACH STATEMENT EXECUTE FUNCTION workerly_append_only()
+  SQL
+  execute <<~'SQL'
+    CREATE TRIGGER workerly_append_only BEFORE DELETE OR UPDATE ON public.booking_approvals FOR EACH ROW EXECUTE FUNCTION workerly_append_only()
+  SQL
+  execute <<~'SQL'
+    CREATE TRIGGER workerly_append_only_truncate BEFORE TRUNCATE ON public.booking_approvals FOR EACH STATEMENT EXECUTE FUNCTION workerly_append_only()
+  SQL
+  execute <<~'SQL'
+    CREATE TRIGGER workerly_append_only BEFORE DELETE OR UPDATE ON public.booking_status_histories FOR EACH ROW EXECUTE FUNCTION workerly_append_only()
+  SQL
+  execute <<~'SQL'
+    CREATE TRIGGER workerly_append_only_truncate BEFORE TRUNCATE ON public.booking_status_histories FOR EACH STATEMENT EXECUTE FUNCTION workerly_append_only()
+  SQL
+  execute <<~'SQL'
+    CREATE TRIGGER workerly_append_only BEFORE DELETE OR UPDATE ON public.invoices FOR EACH ROW EXECUTE FUNCTION workerly_append_only()
+  SQL
+  execute <<~'SQL'
+    CREATE TRIGGER workerly_append_only_truncate BEFORE TRUNCATE ON public.invoices FOR EACH STATEMENT EXECUTE FUNCTION workerly_append_only()
+  SQL
+  execute <<~'SQL'
+    CREATE TRIGGER workerly_append_only BEFORE DELETE OR UPDATE ON public.ledger_entries FOR EACH ROW EXECUTE FUNCTION workerly_append_only()
+  SQL
+  execute <<~'SQL'
+    CREATE TRIGGER workerly_append_only_truncate BEFORE TRUNCATE ON public.ledger_entries FOR EACH STATEMENT EXECUTE FUNCTION workerly_append_only()
+  SQL
+  execute <<~'SQL'
+    CREATE TRIGGER workerly_append_only BEFORE DELETE OR UPDATE ON public.ledger_transactions FOR EACH ROW EXECUTE FUNCTION workerly_append_only()
+  SQL
+  execute <<~'SQL'
+    CREATE TRIGGER workerly_append_only_truncate BEFORE TRUNCATE ON public.ledger_transactions FOR EACH STATEMENT EXECUTE FUNCTION workerly_append_only()
+  SQL
+  execute <<~'SQL'
+    CREATE TRIGGER workerly_append_only BEFORE DELETE OR UPDATE ON public.messages FOR EACH ROW EXECUTE FUNCTION workerly_append_only()
+  SQL
+  execute <<~'SQL'
+    CREATE TRIGGER workerly_append_only_truncate BEFORE TRUNCATE ON public.messages FOR EACH STATEMENT EXECUTE FUNCTION workerly_append_only()
+  SQL
+  execute <<~'SQL'
+    CREATE TRIGGER workerly_append_only BEFORE DELETE OR UPDATE ON public.payment_events FOR EACH ROW EXECUTE FUNCTION workerly_append_only()
+  SQL
+  execute <<~'SQL'
+    CREATE TRIGGER workerly_append_only_truncate BEFORE TRUNCATE ON public.payment_events FOR EACH STATEMENT EXECUTE FUNCTION workerly_append_only()
+  SQL
+  execute <<~'SQL'
+    CREATE TRIGGER workerly_append_only BEFORE DELETE OR UPDATE ON public.quotation_items FOR EACH ROW EXECUTE FUNCTION workerly_append_only()
+  SQL
+  execute <<~'SQL'
+    CREATE TRIGGER workerly_append_only_truncate BEFORE TRUNCATE ON public.quotation_items FOR EACH STATEMENT EXECUTE FUNCTION workerly_append_only()
+  SQL
+  execute <<~'SQL'
+    CREATE TRIGGER workerly_append_only BEFORE DELETE OR UPDATE ON public.quotation_revisions FOR EACH ROW EXECUTE FUNCTION workerly_append_only()
+  SQL
+  execute <<~'SQL'
+    CREATE TRIGGER workerly_append_only_truncate BEFORE TRUNCATE ON public.quotation_revisions FOR EACH STATEMENT EXECUTE FUNCTION workerly_append_only()
+  SQL
+  execute <<~'SQL'
+    CREATE TRIGGER workerly_append_only BEFORE DELETE OR UPDATE ON public.reviews FOR EACH ROW EXECUTE FUNCTION workerly_append_only()
+  SQL
+  execute <<~'SQL'
+    CREATE TRIGGER workerly_append_only_truncate BEFORE TRUNCATE ON public.reviews FOR EACH STATEMENT EXECUTE FUNCTION workerly_append_only()
+  SQL
+  execute <<~'SQL'
+    CREATE TRIGGER workerly_append_only BEFORE DELETE OR UPDATE ON public.worker_payouts FOR EACH ROW EXECUTE FUNCTION workerly_append_only()
+  SQL
+  execute <<~'SQL'
+    CREATE TRIGGER workerly_append_only_truncate BEFORE TRUNCATE ON public.worker_payouts FOR EACH STATEMENT EXECUTE FUNCTION workerly_append_only()
+  SQL
+  execute <<~'SQL'
+    CREATE TRIGGER workerly_append_only BEFORE DELETE OR UPDATE ON public.worker_verifications FOR EACH ROW EXECUTE FUNCTION workerly_append_only()
+  SQL
+  execute <<~'SQL'
+    CREATE TRIGGER workerly_append_only_truncate BEFORE TRUNCATE ON public.worker_verifications FOR EACH STATEMENT EXECUTE FUNCTION workerly_append_only()
+  SQL
 end

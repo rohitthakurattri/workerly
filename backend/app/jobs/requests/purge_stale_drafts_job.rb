@@ -8,9 +8,12 @@ module Requests
     def perform(now: Time.current)
       ServiceRequest.where(status: "draft").where(updated_at: ...(now - MAX_AGE)).find_each do |draft|
         draft.attachments.each { |a| a.file.purge_later }
-        draft.update_columns(triage_analysis_id: nil)
-        AiAnalysis.where(analysable: draft).delete_all # append-only in the app; the draft's own log goes with it
-        draft.destroy!
+        ServiceRequest.transaction do
+          draft.update_columns(triage_analysis_id: nil)
+          # The AI log is append-only, but an abandoned draft's own log (it holds the description) goes with it.
+          AppendOnly.rewriting { AiAnalysis.where(analysable: draft).delete_all }
+          draft.destroy!
+        end
       end
     end
   end

@@ -16,7 +16,7 @@
 - **Only the signed webhook makes anything paid.** The checkout callback (`/verify`) checks the signature and remembers the gateway payment id, but status changes come from `payment.captured` / `payment.failed` / `refund.*` webhooks, verified against the raw body. Each event is stored once (`payment_events`, unique provider + event id) and applied in the same transaction, so redeliveries change nothing. A captured amount that differs from the order becomes `amount_mismatch` for finance.
 - **Idempotency everywhere money moves:** creating an order, cash, refunds and payouts all take an `Idempotency-Key`; an open unpaid order for the same amount is reused.
 - **Commission is snapshotted at booking** (`Quotations::Accept` copies the matching rule onto the booking), so a rule change never re-prices accepted work. Rules are never edited: a new rule with a later `effective_from` replaces the old one; the most specific (city + category › category › city › everywhere) wins. Creating one is audited.
-- **Double-entry ledger** (`Ledger::Post`, balanced per currency, idempotent by key, append-only):
+- **Double-entry ledger** (`Ledger::Post`, balanced per currency, idempotent by key, append-only — enforced by Postgres triggers, as are invoices, payment events and the other history tables):
 
   | Event | Debit | Credit |
   | --- | --- | --- |

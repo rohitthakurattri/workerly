@@ -73,5 +73,5 @@ bin/rails "admin:grant[9876543210,verifier]"
 - **Bank/UPI payout details:** they depend on D3 (Razorpay Route linked accounts and KYC), so they are deferred to Phase 7.
 - **EXIF stripping and image resizing:** need libvips on the servers. They come with customer photos in Phase 3. Worker documents are seen only by staff.
 - **Admin category UI:** the API exists, but there is no screen yet (categories are seeded).
-- **Database triggers** for the append-only tables: they come with `structure.sql` in Phase 7.
+- **Database triggers** for the append-only tables: done in Phase 7 (see `docs/phase-7-payments.md`), kept in `schema.rb` rather than `structure.sql`.
 - **Worker availability schedule** (days and hours): only the on/off switch exists for now.

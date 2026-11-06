@@ -22,7 +22,7 @@ draft ──submit──▶ pending_review ──approve──▶ approved
 - **Files:** stored on a private disk in development and a private S3 bucket with SSE-KMS in production. The API hands out only 5-minute signed URLs, and in production the non-expiring Rails blob routes are turned off.
 - **Upload checks:** file types are checked from the file bytes (Marcel), not the file name. Limits: photo 5 MB, documents 10 MB.
 - **Who sees documents:** only the worker and staff with the `admin`, `verifier` or `support` role. Customers never see them.
-- **Audit trail:** every staff decision writes a `worker_verifications` row and an `admin_actions` row in the same transaction. Both are append-only in the app (read-only models). DB triggers will follow when the schema moves to `structure.sql` (needed for the ledger in Phase 7).
+- **Audit trail:** every staff decision writes a `worker_verifications` row and an `admin_actions` row in the same transaction. Both are append-only in the app (read-only models) and, since Phase 7, in Postgres (`workerly_append_only` triggers).
 
 ## Role matrix
 | Action | admin | verifier | support | finance |

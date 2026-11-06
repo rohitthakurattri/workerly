@@ -8,8 +8,7 @@ RSpec.describe "Quotations exit gate", type: :request do
   self.use_transactional_tests = false
 
   after do
-    conn = ActiveRecord::Base.connection
-    conn.truncate_tables(*(conn.tables - %w[schema_migrations ar_internal_metadata]))
+    truncate_committed_data!
   end
 
   let!(:mohali) { create(:mohali) }
