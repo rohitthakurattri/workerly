@@ -21,8 +21,22 @@ module Adapters
         "appliance-repair" => [ "What is the appliance and brand?", "What happens when you switch it on?" ]
       }.freeze
 
+      # A fixed sentence per language, so a recorded voice note flows through to triage (plumber).
+      TRANSCRIPTS = {
+        "en" => "The kitchen tap is leaking and water is dripping under the sink.",
+        "hi" => "रसोई का नल लीक हो रहा है और सिंक के नीचे पानी टपक रहा है।",
+        "pa" => "ਰਸੋਈ ਦਾ ਨਲ ਲੀਕ ਹੋ ਰਿਹਾ ਹੈ ਅਤੇ ਸਿੰਕ ਦੇ ਹੇਠਾਂ ਪਾਣੀ ਟਪਕ ਰਿਹਾ ਹੈ।"
+      }.freeze
+
       def name = "fake"
       def supports_images? = false
+
+      def transcribe(audio:, language:, **)
+        raise Error.new(:invalid_output, "empty audio") if audio.to_s.empty?
+
+        lang = TRANSCRIPTS.key?(language) ? language : "en"
+        Response.new(output: { "text" => TRANSCRIPTS.fetch(lang), "language" => lang }, model: "fake-stt-1")
+      end
 
       def complete(use_case:, vars:, **)
         raise Error.new(:not_configured, "fake adapter has no #{use_case}") unless use_case == "triage"

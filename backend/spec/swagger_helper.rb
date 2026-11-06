@@ -114,6 +114,35 @@ RSpec.configure do |config|
                           width: { type: :integer, nullable: true }, height: { type: :integer, nullable: true },
                           file: { "$ref" => "#/components/schemas/file" } }
           },
+          voice_note: {
+            type: :object, required: %w[id transcript_status created_at],
+            properties: { id: { type: :string }, duration_ms: { type: :integer, nullable: true },
+                          transcript_status: { type: :string, enum: %w[pending succeeded failed skipped], nullable: true },
+                          transcript_language: { type: :string, nullable: true }, transcript: { type: :string, nullable: true },
+                          file: { allOf: [ { "$ref" => "#/components/schemas/file" } ], nullable: true }, created_at: { type: :string } }
+          },
+          ai_quality: {
+            type: :object, required: %w[from to submitted triaged preselected no_suggestion calibration categories confusions versions voice_notes],
+            properties: {
+              from: { type: :string }, to: { type: :string }, submitted: { type: :integer }, triaged: { type: :integer },
+              coverage: { type: :number, nullable: true }, accuracy: { type: :number, nullable: true }, no_suggestion: { type: :integer },
+              preselected: { type: :object, required: %w[count], properties: { count: { type: :integer }, share: { type: :number, nullable: true },
+                                                                                 accuracy: { type: :number, nullable: true } } },
+              calibration: { type: :array, items: { type: :object, required: %w[from to count],
+                                                    properties: { from: { type: :number }, to: { type: :number }, count: { type: :integer },
+                                                                  accuracy: { type: :number, nullable: true } } } },
+              categories: { type: :array, items: { type: :object, required: %w[slug requests suggested],
+                                                   properties: { slug: { type: :string }, requests: { type: :integer }, suggested: { type: :integer },
+                                                                 recall: { type: :number, nullable: true }, precision: { type: :number, nullable: true } } } },
+              confusions: { type: :array, items: { type: :object, required: %w[suggested chosen count],
+                                                   properties: { suggested: { type: :string }, chosen: { type: :string }, count: { type: :integer } } } },
+              versions: { type: :array, items: { type: :object, required: %w[triaged],
+                                                 properties: { prompt_version: { type: :string, nullable: true }, model: { type: :string, nullable: true },
+                                                               triaged: { type: :integer }, accuracy: { type: :number, nullable: true } } } },
+              voice_notes: { type: :object, required: %w[count transcribed failed skipped],
+                             properties: { count: { type: :integer }, transcribed: { type: :integer }, failed: { type: :integer }, skipped: { type: :integer } } }
+            }
+          },
           triage: {
             type: :object, required: %w[id confidence alternatives questions safety_flag needs_confirmation],
             properties: { id: { type: :string }, suggested_category: { allOf: [ { "$ref" => "#/components/schemas/category_brief" } ], nullable: true },
@@ -135,7 +164,7 @@ RSpec.configure do |config|
               category: { allOf: [ { "$ref" => "#/components/schemas/category_brief" } ], nullable: true },
               address: { allOf: [ { "$ref" => "#/components/schemas/address" } ], nullable: true },
               preferred_from: { type: :string, nullable: true }, preferred_to: { type: :string, nullable: true },
-              photos: { type: :array, items: { "$ref" => "#/components/schemas/request_photo" } },
+              photos: { type: :array, items: { "$ref" => "#/components/schemas/request_photo" } }, voice_note: { allOf: [ { "$ref" => "#/components/schemas/voice_note" } ], nullable: true },
               triage: { allOf: [ { "$ref" => "#/components/schemas/triage" } ], nullable: true },
               missing: { type: :array, items: { type: :string, enum: %w[description category address] } },
               cancellable: { type: :boolean }, cancel_reason: { type: :string, nullable: true },
@@ -170,7 +199,7 @@ RSpec.configure do |config|
               preferred_from: { type: :string, nullable: true }, preferred_to: { type: :string, nullable: true },
               locality: { type: :string }, city: { type: :string },
               distance_band: { type: :string, enum: %w[under_1km 1_3km 3_5km 5_10km over_10km] },
-              photos: { type: :array, items: { "$ref" => "#/components/schemas/request_photo" } },
+              photos: { type: :array, items: { "$ref" => "#/components/schemas/request_photo" } }, voice_note: { allOf: [ { "$ref" => "#/components/schemas/voice_note" } ], nullable: true },
               invited_at: { type: :string }, expires_at: { type: :string }
             }
           },
@@ -391,7 +420,7 @@ RSpec.configure do |config|
                        properties: { customer: { type: :object, nullable: true, properties: { name: { type: :string, nullable: true }, phone: { type: :string } } },
                                      description: { type: :string, nullable: true }, urgency: { "$ref" => "#/components/schemas/urgency" },
                                      answers: { type: :array, items: { type: :object, properties: { question: { type: :string }, answer: { type: :string } } } },
-                                     photos: { type: :array, items: { "$ref" => "#/components/schemas/request_photo" } },
+                                     photos: { type: :array, items: { "$ref" => "#/components/schemas/request_photo" } }, voice_note: { allOf: [ { "$ref" => "#/components/schemas/voice_note" } ], nullable: true },
                                      currency: { type: :string }, tax_rate_bps: { type: :integer } } } ]
           },
           notification: {
@@ -419,7 +448,7 @@ RSpec.configure do |config|
                                                                 landmark: { type: :string, nullable: true }, locality: { type: :string }, pincode: { type: :string } } },
               category: { type: :string }, city: { type: :string }, location: { "$ref" => "#/components/schemas/lat_lng" },
               customer: { type: :object, properties: { id: { type: :string }, name: { type: :string, nullable: true }, phone: { type: :string } } },
-              photos: { type: :array, items: { "$ref" => "#/components/schemas/request_photo" } },
+              photos: { type: :array, items: { "$ref" => "#/components/schemas/request_photo" } }, voice_note: { allOf: [ { "$ref" => "#/components/schemas/voice_note" } ], nullable: true },
               preferred_from: { type: :string, nullable: true }, preferred_to: { type: :string, nullable: true },
               submitted_at: { type: :string }, matched_at: { type: :string, nullable: true }, expires_at: { type: :string },
               cancelled_at: { type: :string, nullable: true },

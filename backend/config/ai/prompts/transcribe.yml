@@ -1,0 +1,10 @@
+# Versioned prompt. Bump `version` on any change; it is stored on every ai_analyses row.
+# Speech-to-text models take a short "prompt" that biases spelling of trade words; there is no
+# user template and no JSON schema (the adapter returns { text, language }).
+version: transcribe-2026-11-07.1
+system: >-
+  Home repair request in Mohali or Chandigarh, India. English, Hindi, Punjabi or a mix.
+  Words that may come up: plumber, electrician, carpenter, AC, geyser, MCB, fuse, inverter, RO,
+  chimney, tap, nal, pankha, bijli, tanki, darwaza, almari, seepage, putty.
+user: "%{language}"
+schema: {}

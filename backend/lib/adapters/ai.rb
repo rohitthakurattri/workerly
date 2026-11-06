@@ -1,8 +1,12 @@
 module Adapters
-  # AI provider port: complete(use_case:, system:, user:, vars:, images:, schema:, model:, timeout:) -> Response.
-  # Business code never calls an adapter directly; it goes through Ai::Gateway.
+  # AI provider port. Business code never calls an adapter directly; it goes through Ai::Gateway.
+  #   complete(use_case:, system:, user:, vars:, images:, schema:, model:, timeout:) -> Response
+  #   transcribe(audio:, content_type:, language:, prompt:, model:, timeout:) -> Response
+  #     output: { "text" => String, "language" => String|nil }; audio_seconds when the provider reports it
   module Ai
-    Response = Data.define(:output, :model, :input_tokens, :output_tokens)
+    Response = Data.define(:output, :model, :input_tokens, :output_tokens, :audio_seconds) do
+      def initialize(output:, model:, input_tokens: nil, output_tokens: nil, audio_seconds: nil) = super
+    end
 
     # code: timeout | network | rate_limited | provider_error | refused | invalid_output | not_configured
     class Error < StandardError

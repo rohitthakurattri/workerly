@@ -17,7 +17,7 @@ module Ai
     def call(request:, user:)
       raise ApplicationError.new(:ai_unavailable, status: :service_unavailable) unless Workerly.config.ai_triage_enabled
 
-      description = Shared::Redact.call(request.description)
+      description = Shared::Redact.call(text_for(request))
       photos = request.photos.first(MAX_IMAGES)
       raise ApplicationError.new(:nothing_to_analyse) if description.length < ServiceRequest::DESCRIPTION_MIN && photos.empty?
 
@@ -50,6 +50,15 @@ module Ai
       Suggestion.new(analysis: result.analysis, category:, confidence: category ? confidence(out) : 0.0, alternatives:,
                      summary: out["problem_summary"].to_s.strip.truncate(500).presence, questions:, urgency:,
                      safety_flag: out["safety_flag"] == true)
+    end
+
+    # The description, plus the voice note's transcript unless the customer already pasted it in.
+    def text_for(request)
+      text = request.description.to_s.strip
+      spoken = request.voice_note&.transcript.to_s.strip
+      return text if spoken.empty? || text.include?(spoken)
+
+      [ text.presence, "Voice note (transcribed): #{spoken}" ].compact.join("\n\n")
     end
 
     def confidence(out) = out["confidence"].to_f.clamp(0.0, 1.0).round(3)

@@ -42,4 +42,29 @@ RSpec.describe Adapters::Ai::OpenAi do
   it "refuses to run without a key or model" do
     expect { described_class.new(api_key: nil).complete(**args) }.to raise_error(Adapters::Ai::Error, /not_configured|required/)
   end
+
+  describe "#transcribe" do
+    let(:stt_url) { "https://api.openai.com/v1/audio/transcriptions" }
+    let(:stt_args) { { audio: "OPUSBYTES", content_type: "audio/webm", language: "hi", prompt: "plumber, geyser", model: "stt-1", timeout: 30 } }
+
+    it "uploads the audio as multipart with the language hint and reads text and billed seconds" do
+      stub = stub_request(:post, stt_url).with(headers: { "Authorization" => "Bearer sk-test" }) do |req|
+        req.headers["Content-Type"].start_with?("multipart/form-data") &&
+          req.body.include?('filename="voice-note.webm"') && req.body.include?("OPUSBYTES") &&
+          req.body.match?(/name="language"\r\n\r\nhi/) && req.body.match?(/name="model"\r\n\r\nstt-1/)
+      end.to_return(status: 200, body: { text: "नल लीक है", usage: { type: "duration", seconds: 7 } }.to_json)
+
+      response = adapter.transcribe(**stt_args)
+      expect(stub).to have_been_requested
+      expect(response).to have_attributes(output: { "text" => "नल लीक है", "language" => "hi" }, model: "stt-1", audio_seconds: 7)
+    end
+
+    it "needs a key and a model, and maps provider failures" do
+      expect { described_class.new(api_key: nil).transcribe(**stt_args) }.to raise_error(Adapters::Ai::Error) { |e| expect(e.code).to eq("not_configured") }
+      stub_request(:post, stt_url).to_return(status: 429)
+      expect { adapter.transcribe(**stt_args) }.to raise_error(Adapters::Ai::Error) { |e| expect(e.code).to eq("rate_limited") }
+      stub_request(:post, stt_url).to_return(status: 200, body: { nope: 1 }.to_json)
+      expect { adapter.transcribe(**stt_args) }.to raise_error(Adapters::Ai::Error) { |e| expect(e.code).to eq("invalid_output") }
+    end
+  end
 end

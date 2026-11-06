@@ -66,6 +66,11 @@ const km = (m: number) => (m / 1000).toFixed(1)
           >
             <span class="text-ink-muted">{{ a.question }}</span> {{ a.answer }}
           </p>
+          <SharedVoiceNoteView
+            v-if="r.voice_note"
+            :note="r.voice_note"
+            class="mt-3"
+          />
           <div
             v-if="r.photos?.length"
             class="mt-3 flex gap-2 overflow-x-auto"

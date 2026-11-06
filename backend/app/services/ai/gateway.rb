@@ -4,7 +4,7 @@ module Ai
   module Gateway
     module_function
 
-    TIMEOUTS = { "triage" => 8 }.freeze
+    TIMEOUTS = { "triage" => 8, "transcribe" => 30 }.freeze
     CACHE_TTL = 7.days
     BREAKER_FAILURES = 5
     BREAKER_WINDOW = 1.minute
@@ -14,8 +14,10 @@ module Ai
     # vars: strings for the prompt template; image_keys: stable ids (blob checksums) of the images.
     # images: a lambda returning [{ content_type:, data: (base64) }], only called on a real provider call.
     # extract: output -> { suggested_category_id:, confidence: } stored on the analysis row.
+    # invoke: (adapter, prompt, model, timeout) -> Adapters::Ai::Response, for ports other than complete
+    #         (transcription); image_keys then identify the input (the audio's checksum).
     def call(use_case:, analysable:, user:, vars:, image_keys: [], images: -> { [] }, extract: ->(_) { {} },
-             adapter: Adapters::Ai.adapter)
+             adapter: Adapters::Ai.adapter, invoke: nil)
       prompt = Prompts.fetch(use_case)
       model = model_for(use_case)
       input_hash = Digest::SHA256.hexdigest([ prompt.version, adapter.name, model, prompt.render(vars), *image_keys ].join("\u0000"))
@@ -33,8 +35,13 @@ module Ai
 
       started = Process.clock_gettime(Process::CLOCK_MONOTONIC)
       begin
-        response = adapter.complete(use_case:, system: prompt.system, user: prompt.render(vars), vars:, schema: prompt.schema,
-                                    images: adapter.supports_images? ? images.call : [], model:, timeout: TIMEOUTS.fetch(use_case))
+        timeout = TIMEOUTS.fetch(use_case)
+        response = if invoke
+          invoke.call(adapter, prompt, model, timeout)
+        else
+          adapter.complete(use_case:, system: prompt.system, user: prompt.render(vars), vars:, schema: prompt.schema,
+                           images: adapter.supports_images? ? images.call : [], model:, timeout:)
+        end
       rescue Adapters::Ai::Error => e
         AiAnalysis.create!(base.merge(status: "failed", model:, error_code: e.code, latency_ms: elapsed_ms(started)))
         Rails.logger.warn("[Ai::Gateway] #{use_case} via #{adapter.name} failed: #{e.code}")
@@ -52,6 +59,7 @@ module Ai
     def model_for(use_case)
       case use_case
       when "triage" then Workerly.config.ai_triage_model
+      when "transcribe" then Workerly.config.ai_transcribe_model
       end
     end
 
@@ -77,8 +85,12 @@ module Ai
       raise ApplicationError.too_many_requests(:ai_budget_exceeded)
     end
 
+    # Token prices (per million), or per_minute for speech-to-text billed by duration.
     def cost(provider, response)
       price = pricing["#{provider}/#{response.model}"]
+      if price && price["per_minute"] && response.audio_seconds
+        return { cost_micros: (response.audio_seconds.to_f / 60 * price["per_minute"]).round, currency_code: price["currency"] }
+      end
       return {} unless price && response.input_tokens && response.output_tokens
 
       micros = (response.input_tokens * price["input"] + response.output_tokens * price["output"]) / 1_000_000

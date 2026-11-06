@@ -9,6 +9,7 @@ class ServiceRequestResource
   attribute(:preferred_from) { |r| r.preferred_from&.iso8601 }
   attribute(:preferred_to) { |r| r.preferred_to&.iso8601 }
   attribute(:photos) { |r| r.photos.map { |a| RequestAttachmentResource.new(a).to_h } }
+  attribute(:voice_note) { |r| r.voice_note && VoiceNoteResource.new(r.voice_note).to_h }
   attribute(:triage) { |r| triage_for(r) }
   attribute(:missing) { |r| r.draft? ? r.missing : [] }
   attribute(:cancellable) { |r| r.cancellable? }

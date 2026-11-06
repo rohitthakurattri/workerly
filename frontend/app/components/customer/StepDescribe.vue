@@ -2,6 +2,7 @@
 import { computed, ref, useId } from 'vue'
 import { ApiError } from '~/utils/api-error'
 import { DESCRIPTION_MIN } from '~/utils/requests'
+import { appendTranscript } from '~/utils/voice'
 
 const emit = defineEmits<{ done: [] }>()
 const { request, save } = useServiceRequest()
@@ -12,6 +13,7 @@ const description = ref(request.value?.description ?? '')
 const busy = ref(false)
 const error = ref<string | null>(null)
 const tooShort = computed(() => description.value.trim().length < DESCRIPTION_MIN)
+const useTranscript = (text: string) => { description.value = appendTranscript(description.value, text) }
 
 async function next() {
   busy.value = true
@@ -52,6 +54,7 @@ async function next() {
         {{ t('requests.describeHint') }}
       </p>
     </div>
+    <CustomerVoiceNote @use-transcript="useTranscript" />
     <CustomerPhotoPicker />
     <p
       v-if="error"

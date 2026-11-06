@@ -467,6 +467,170 @@ components:
           nullable: true
         file:
           "$ref": "#/components/schemas/file"
+    voice_note:
+      type: object
+      required:
+      - id
+      - transcript_status
+      - created_at
+      properties:
+        id:
+          type: string
+        duration_ms:
+          type: integer
+          nullable: true
+        transcript_status:
+          type: string
+          enum:
+          - pending
+          - succeeded
+          - failed
+          - skipped
+          nullable: true
+        transcript_language:
+          type: string
+          nullable: true
+        transcript:
+          type: string
+          nullable: true
+        file:
+          allOf:
+          - "$ref": "#/components/schemas/file"
+          nullable: true
+        created_at:
+          type: string
+    ai_quality:
+      type: object
+      required:
+      - from
+      - to
+      - submitted
+      - triaged
+      - preselected
+      - no_suggestion
+      - calibration
+      - categories
+      - confusions
+      - versions
+      - voice_notes
+      properties:
+        from:
+          type: string
+        to:
+          type: string
+        submitted:
+          type: integer
+        triaged:
+          type: integer
+        coverage:
+          type: number
+          nullable: true
+        accuracy:
+          type: number
+          nullable: true
+        no_suggestion:
+          type: integer
+        preselected:
+          type: object
+          required:
+          - count
+          properties:
+            count:
+              type: integer
+            share:
+              type: number
+              nullable: true
+            accuracy:
+              type: number
+              nullable: true
+        calibration:
+          type: array
+          items:
+            type: object
+            required:
+            - from
+            - to
+            - count
+            properties:
+              from:
+                type: number
+              to:
+                type: number
+              count:
+                type: integer
+              accuracy:
+                type: number
+                nullable: true
+        categories:
+          type: array
+          items:
+            type: object
+            required:
+            - slug
+            - requests
+            - suggested
+            properties:
+              slug:
+                type: string
+              requests:
+                type: integer
+              suggested:
+                type: integer
+              recall:
+                type: number
+                nullable: true
+              precision:
+                type: number
+                nullable: true
+        confusions:
+          type: array
+          items:
+            type: object
+            required:
+            - suggested
+            - chosen
+            - count
+            properties:
+              suggested:
+                type: string
+              chosen:
+                type: string
+              count:
+                type: integer
+        versions:
+          type: array
+          items:
+            type: object
+            required:
+            - triaged
+            properties:
+              prompt_version:
+                type: string
+                nullable: true
+              model:
+                type: string
+                nullable: true
+              triaged:
+                type: integer
+              accuracy:
+                type: number
+                nullable: true
+        voice_notes:
+          type: object
+          required:
+          - count
+          - transcribed
+          - failed
+          - skipped
+          properties:
+            count:
+              type: integer
+            transcribed:
+              type: integer
+            failed:
+              type: integer
+            skipped:
+              type: integer
     triage:
       type: object
       required:
@@ -569,6 +733,10 @@ components:
           type: array
           items:
             "$ref": "#/components/schemas/request_photo"
+        voice_note:
+          allOf:
+          - "$ref": "#/components/schemas/voice_note"
+          nullable: true
         triage:
           allOf:
           - "$ref": "#/components/schemas/triage"
@@ -746,6 +914,10 @@ components:
           type: array
           items:
             "$ref": "#/components/schemas/request_photo"
+        voice_note:
+          allOf:
+          - "$ref": "#/components/schemas/voice_note"
+          nullable: true
         invited_at:
           type: string
         expires_at:
@@ -1828,6 +2000,10 @@ components:
             type: array
             items:
               "$ref": "#/components/schemas/request_photo"
+          voice_note:
+            allOf:
+            - "$ref": "#/components/schemas/voice_note"
+            nullable: true
           currency:
             type: string
           tax_rate_bps:
@@ -1980,6 +2156,10 @@ components:
           type: array
           items:
             "$ref": "#/components/schemas/request_photo"
+        voice_note:
+          allOf:
+          - "$ref": "#/components/schemas/voice_note"
+          nullable: true
         preferred_from:
           type: string
           nullable: true
@@ -4163,6 +4343,63 @@ paths:
       responses:
         '200':
           description: ok
+  "/api/v1/customer/service_requests/{id}/voice_note":
+    parameters:
+    - name: id
+      in: path
+      schema:
+        type: string
+      required: true
+    post:
+      summary: Add or replace the draft's voice note (≤ 3 MB, ≤ 2 min); transcribed
+        in the background
+      tags:
+      - Customer requests
+      security:
+      - bearer: []
+      parameters:
+      - name: Authorization
+        in: header
+        schema:
+          type: string
+      responses:
+        '201':
+          description: stored; poll the request until voice_note.transcript_status
+            is not pending
+        '422':
+          description: not a recording (checked from the bytes) or too big
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: string
+              format: binary
+  "/api/v1/admin/ai/quality":
+    get:
+      summary: 'Triage accuracy on real traffic: suggestion vs the category submitted
+        (admin)'
+      tags:
+      - Admin AI
+      security:
+      - bearer: []
+      parameters:
+      - name: Authorization
+        in: header
+        schema:
+          type: string
+      - name: from
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: to
+        in: query
+        required: false
+        schema:
+          type: string
+      responses:
+        '200':
+          description: report
   "/api/v1/categories":
     get:
       summary: Active service categories (tree)

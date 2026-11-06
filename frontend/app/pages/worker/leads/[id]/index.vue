@@ -132,6 +132,17 @@ const fmt = (iso: string) => new Intl.DateTimeFormat(locale.value, { weekday: 's
               </template>
             </dd>
           </div>
+          <div v-if="lead.voice_note">
+            <dt class="mb-1 text-xs uppercase tracking-wide text-ink-muted">
+              {{ t('voice.title') }}
+            </dt>
+            <dd>
+              <SharedVoiceNoteView
+                :note="lead.voice_note"
+                :hidden-hint="t('voice.afterBooking')"
+              />
+            </dd>
+          </div>
           <div v-if="lead.photos.length">
             <dt class="mb-1 text-xs uppercase tracking-wide text-ink-muted">
               {{ t('requests.photos') }}

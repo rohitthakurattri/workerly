@@ -23,6 +23,8 @@ class LeadResource
   attribute(:city) { |i| i.service_request.city.slug }
   attribute(:distance_band) { |i| Matching::DistanceBand.call(i.distance_m) }
   attribute(:photos) { |i| i.service_request.photos.map { |a| RequestAttachmentResource.new(a).to_h } }
+  # Transcript only, redacted; the recording is shared once the worker is booked.
+  attribute(:voice_note) { |i| (v = i.service_request.voice_note) && VoiceNoteResource.new(v, params: { redact: true, audio: false }).to_h }
   attribute(:invited_at) { |i| i.created_at.iso8601 }
   attribute(:expires_at) { |i| i.service_request.expires_at.iso8601 }
   attribute(:currency) { |i| i.service_request.city.currency_code }

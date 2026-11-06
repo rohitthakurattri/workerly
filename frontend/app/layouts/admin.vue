@@ -63,6 +63,13 @@ const { t } = useI18n()
         </NuxtLink>
         <NuxtLink
           v-if="canViewAudit"
+          to="/ai-quality"
+          class="admin-tab"
+        >
+          {{ t('aiQuality.nav') }}
+        </NuxtLink>
+        <NuxtLink
+          v-if="canViewAudit"
           to="/audit-logs"
           class="admin-tab"
         >

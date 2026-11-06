@@ -10,6 +10,7 @@ module Admin
     attribute(:location) { |r| { lat: r.location_lat, lng: r.location_lng } }
     attribute(:customer) { |r| { id: r.customer.public_id, name: r.customer.name, phone: r.customer.phone_e164 } }
     attribute(:photos) { |r| r.photos.map { |a| RequestAttachmentResource.new(a).to_h } }
+    attribute(:voice_note) { |r| r.voice_note && VoiceNoteResource.new(r.voice_note).to_h }
     attribute(:preferred_from) { |r| r.preferred_from&.iso8601 }
     attribute(:preferred_to) { |r| r.preferred_to&.iso8601 }
     attribute(:submitted_at) { |r| r.submitted_at.iso8601 }

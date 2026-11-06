@@ -44,6 +44,7 @@ Rails.application.routes.draw do
           end
           resource :triage, only: :create
           resources :attachments, only: %i[create destroy]
+          resource :voice_note, only: :create
           resources :quotations, only: :index
         end
         resources :quotations, only: :show do
@@ -130,6 +131,7 @@ Rails.application.routes.draw do
           get :commission_rules
           post :commission_rules, action: :create_commission_rule
         end
+        get "ai/quality", to: "ai_quality#show"
         resources :audit_logs, only: :index
         resources :categories, only: %i[index create update]
       end

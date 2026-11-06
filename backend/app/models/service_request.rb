@@ -45,7 +45,8 @@ class ServiceRequest < ApplicationRecord
   def quotable?(now = Time.current) = QUOTABLE_STATUSES.include?(status) && expires_at.present? && expires_at > now
   def active_booking = bookings.active.first
 
-  def photos = attachments.select { |a| a.kind == "image" }
+  def photos = attachments.select(&:image?)
+  def voice_note = attachments.find(&:audio?)
 
   # What a draft still needs before it can be submitted (mirrors the steps in the customer app).
   def missing

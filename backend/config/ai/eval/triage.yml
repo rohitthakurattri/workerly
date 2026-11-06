@@ -1,0 +1,42 @@
+# Labelled triage cases: realistic customer wording (English, Hindi, Punjabi, romanised mixes)
+# and the category a dispatcher would pick. Run: bin/rails "ai:eval[triage]".
+# Grow it from real traffic with bin/rails "ai:export_triage_cases" (redacted), reviewing each label.
+# `null` means no listed category fits: the model should return no category.
+version: 2026-11-07.1
+cases:
+  - { text: "Kitchen tap is leaking non stop, water everywhere", expect: plumber, lang: en }
+  - { text: "Toilet flush not working and the tank keeps filling", expect: plumber, lang: en }
+  - { text: "Bathroom drain blocked, water not going down", expect: plumber, lang: en }
+  - { text: "Geyser pipe leaking from the joint", expect: plumber, lang: en }
+  - { text: "रसोई का नल टपक रहा है, पानी बंद नहीं होता", expect: plumber, lang: hi }
+  - { text: "chhat wali tanki overflow ho rahi hai, pipe leak", expect: plumber, lang: hi }
+  - { text: "ਬਾਥਰੂਮ ਦਾ ਨਲ ਲੀਕ ਕਰ ਰਿਹਾ ਹੈ", expect: plumber, lang: pa }
+  - { text: "Fan making noise and switch is sparking", expect: electrician, lang: en }
+  - { text: "MCB keeps tripping when I turn on the iron", expect: electrician, lang: en }
+  - { text: "Need new wiring for two lights in the bedroom", expect: electrician, lang: en }
+  - { text: "Inverter not charging, battery shows low", expect: electrician, lang: en }
+  - { text: "पंखा नहीं चल रहा, स्विच से बिजली की चिंगारी", expect: electrician, lang: hi }
+  - { text: "ghar ki bijli baar baar ja rahi hai, fuse ud gaya", expect: electrician, lang: hi }
+  - { text: "ਪੱਖਾ ਬੰਦ ਹੋ ਗਿਆ, ਬਿਜਲੀ ਦਾ ਸਵਿੱਚ ਖਰਾਬ", expect: electrician, lang: pa }
+  - { text: "Wardrobe door hinge broken, door hanging", expect: carpenter, lang: en }
+  - { text: "Main door lock jammed and wood is swollen", expect: carpenter, lang: en }
+  - { text: "Need a new bed frame made from wood", expect: carpenter, lang: en }
+  - { text: "अलमारी का दरवाज़ा टूट गया है", expect: carpenter, lang: hi }
+  - { text: "darwaza band nahi ho raha, lakdi phool gayi", expect: carpenter, lang: hi }
+  - { text: "ਦਰਵਾਜ਼ਾ ਟੁੱਟ ਗਿਆ, ਲੱਕੜ ਦਾ ਕੰਮ", expect: carpenter, lang: pa }
+  - { text: "Split AC not cooling, maybe gas filling needed", expect: ac-repair, lang: en }
+  - { text: "AC water dripping inside the room and compressor noise", expect: ac-repair, lang: en }
+  - { text: "window ac band ho jata hai 10 min baad", expect: ac-repair, lang: hi }
+  - { text: "एसी ठंडा नहीं कर रहा", expect: ac-repair, lang: hi }
+  - { text: "ਏਸੀ ਠੰਡਾ ਨਹੀਂ ਕਰਦਾ", expect: ac-repair, lang: pa }
+  - { text: "Need two rooms painted before Diwali", expect: painter, lang: en }
+  - { text: "Damp patches and seepage on the bedroom wall, needs putty and paint", expect: painter, lang: en }
+  - { text: "दीवार पर पेंट उखड़ रहा है", expect: painter, lang: hi }
+  - { text: "ਕੰਧ ਤੇ ਪੇਂਟ ਕਰਵਾਉਣਾ ਹੈ", expect: painter, lang: pa }
+  - { text: "Fridge not cooling, light is on", expect: appliance-repair, lang: en }
+  - { text: "Washing machine stops mid cycle with an error", expect: appliance-repair, lang: en }
+  - { text: "RO purifier water tastes bad, needs service", expect: appliance-repair, lang: en }
+  - { text: "Microwave not heating", expect: appliance-repair, lang: en }
+  - { text: "फ्रिज ठंडा नहीं कर रहा", expect: appliance-repair, lang: hi }
+  - { text: "ਫਰਿੱਜ ਖਰਾਬ ਹੋ ਗਿਆ", expect: appliance-repair, lang: pa }
+  - { text: "I want to learn guitar on weekends", expect: null, lang: en }

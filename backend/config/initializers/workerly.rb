@@ -9,7 +9,7 @@ module Workerly
   end
 
   Config = Struct.new(:jwt_secret, :otp_pepper, :token_pepper, :sms_adapter, :secure_cookies,
-                      :ai_adapter, :ai_triage_enabled, :ai_triage_model, :ai_user_daily_limit, :ai_global_daily_limit,
+                      :ai_adapter, :ai_triage_enabled, :ai_triage_model, :ai_transcribe_enabled, :ai_transcribe_model, :ai_user_daily_limit, :ai_global_daily_limit,
                       :request_ttl_hours, :match_fanout, :max_quotes_per_request, :lead_sms_fallback,
                       :vapid_public_key, :vapid_private_key, :vapid_subject,
                       :inspection_fee_adjusted, :booking_contact_hours, :review_window_days, :dispute_window_days,
@@ -27,6 +27,9 @@ module Workerly
       ai_adapter: ENV.fetch("AI_ADAPTER", "fake"),
       ai_triage_enabled: ENV.fetch("AI_TRIAGE_ENABLED", Rails.env.production? ? "false" : "true") == "true",
       ai_triage_model: ENV["AI_TRIAGE_MODEL"],
+      # Voice notes are transcribed in the background (Phase 8). Same rule as triage: on in dev/test, off in production until a model is chosen.
+      ai_transcribe_enabled: ENV.fetch("AI_TRANSCRIBE_ENABLED", Rails.env.production? ? "false" : "true") == "true",
+      ai_transcribe_model: ENV["AI_TRANSCRIBE_MODEL"],
       ai_user_daily_limit: ENV.fetch("AI_USER_DAILY_LIMIT", "20").to_i,
       ai_global_daily_limit: ENV.fetch("AI_GLOBAL_DAILY_LIMIT", "5000").to_i,
       # How long a submitted request stays open for quotes (D5, still pending: 24 h proposed).

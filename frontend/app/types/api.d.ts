@@ -3352,6 +3352,96 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/customer/service_requests/{id}/voice_note": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Add or replace the draft's voice note (≤ 3 MB, ≤ 2 min); transcribed in the background */
+        post: {
+            parameters: {
+                query?: never;
+                header?: {
+                    Authorization?: string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "multipart/form-data": string;
+                };
+            };
+            responses: {
+                /** @description stored; poll the request until voice_note.transcript_status is not pending */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description not a recording (checked from the bytes) or too big */
+                422: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/ai/quality": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Triage accuracy on real traffic: suggestion vs the category submitted (admin) */
+        get: {
+            parameters: {
+                query?: {
+                    from?: string;
+                    to?: string;
+                };
+                header?: {
+                    Authorization?: string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description report */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/categories": {
         parameters: {
             query?: never;
@@ -4106,6 +4196,60 @@ export interface components {
             height?: number | null;
             file: components["schemas"]["file"];
         };
+        voice_note: {
+            id: string;
+            duration_ms?: number | null;
+            /** @enum {string|null} */
+            transcript_status: "pending" | "succeeded" | "failed" | "skipped" | null;
+            transcript_language?: string | null;
+            transcript?: string | null;
+            file?: components["schemas"]["file"] | null;
+            created_at: string;
+        };
+        ai_quality: {
+            from: string;
+            to: string;
+            submitted: number;
+            triaged: number;
+            coverage?: number | null;
+            accuracy?: number | null;
+            no_suggestion: number;
+            preselected: {
+                count: number;
+                share?: number | null;
+                accuracy?: number | null;
+            };
+            calibration: {
+                from: number;
+                to: number;
+                count: number;
+                accuracy?: number | null;
+            }[];
+            categories: {
+                slug: string;
+                requests: number;
+                suggested: number;
+                recall?: number | null;
+                precision?: number | null;
+            }[];
+            confusions: {
+                suggested: string;
+                chosen: string;
+                count: number;
+            }[];
+            versions: {
+                prompt_version?: string | null;
+                model?: string | null;
+                triaged: number;
+                accuracy?: number | null;
+            }[];
+            voice_notes: {
+                count: number;
+                transcribed: number;
+                failed: number;
+                skipped: number;
+            };
+        };
         triage: {
             id: string;
             suggested_category?: components["schemas"]["category_brief"] | null;
@@ -4135,6 +4279,7 @@ export interface components {
             preferred_from?: string | null;
             preferred_to?: string | null;
             photos: components["schemas"]["request_photo"][];
+            voice_note?: components["schemas"]["voice_note"] | null;
             triage?: components["schemas"]["triage"] | null;
             missing: ("description" | "category" | "address")[];
             cancellable: boolean;
@@ -4191,6 +4336,7 @@ export interface components {
             /** @enum {string} */
             distance_band: "under_1km" | "1_3km" | "3_5km" | "5_10km" | "over_10km";
             photos: components["schemas"]["request_photo"][];
+            voice_note?: components["schemas"]["voice_note"] | null;
             invited_at: string;
             expires_at: string;
         };
@@ -4563,6 +4709,7 @@ export interface components {
                 answer?: string;
             }[];
             photos: components["schemas"]["request_photo"][];
+            voice_note?: components["schemas"]["voice_note"] | null;
             currency: string;
             tax_rate_bps: number;
         };
@@ -4625,6 +4772,7 @@ export interface components {
                 phone?: string;
             };
             photos?: components["schemas"]["request_photo"][];
+            voice_note?: components["schemas"]["voice_note"] | null;
             preferred_from?: string | null;
             preferred_to?: string | null;
             submitted_at?: string;

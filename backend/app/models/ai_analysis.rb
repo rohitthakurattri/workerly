@@ -1,7 +1,7 @@
 class AiAnalysis < ApplicationRecord
   include AppendOnly
 
-  USE_CASES = %w[triage].freeze
+  USE_CASES = %w[triage transcribe].freeze
   STATUSES = %w[succeeded failed].freeze
 
   has_public_id

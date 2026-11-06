@@ -1,6 +1,7 @@
 import { ref } from 'vue'
-import type { RequestPhoto, ServiceRequest, ServiceRequestSummary, Triage, Urgency } from '~/types/models'
+import type { RequestPhoto, ServiceRequest, ServiceRequestSummary, Triage, Urgency, VoiceNote } from '~/types/models'
 import { compressImage } from '~/utils/image'
+import { voiceFilename } from '~/utils/voice'
 
 export interface RequestChanges {
   description?: string
@@ -69,6 +70,32 @@ export function useServiceRequest() {
     request.value = { ...request.value, photos: request.value.photos.filter(p => p.id !== id) }
   }
 
+  /** Uploads (or replaces) the draft's voice note; the server transcribes it in the background. */
+  async function addVoiceNote(audio: Blob, durationMs: number) {
+    const draft = await ensureDraft()
+    const body = new FormData()
+    body.append('file', audio, voiceFilename(audio.type))
+    body.append('duration_ms', String(Math.round(durationMs)))
+    const note = (await api<{ data: VoiceNote }>(`${base}/${draft.id}/voice_note`, { method: 'POST', body })).data
+    if (request.value?.id === draft.id) request.value = { ...request.value, voice_note: note }
+    return note
+  }
+
+  async function removeVoiceNote() {
+    const note = request.value?.voice_note
+    if (!request.value || !note) return
+    await api(`${base}/${request.value.id}/attachments/${note.id}`, { method: 'DELETE' })
+    request.value = { ...request.value, voice_note: null }
+  }
+
+  /** Re-reads the voice note (while its transcript is pending), keeping the rest of the local draft. */
+  async function refreshVoiceNote() {
+    if (!request.value) return null
+    const fresh = (await api<{ data: ServiceRequest }>(`${base}/${request.value.id}`)).data
+    if (request.value?.id === fresh.id) request.value = { ...request.value, voice_note: fresh.voice_note ?? null }
+    return fresh.voice_note ?? null
+  }
+
   /** AI suggestion. Throws ApiError (ai_unavailable, 503) when the customer should pick themselves. */
   async function runTriage() {
     if (!request.value) return null
@@ -95,5 +122,5 @@ export function useServiceRequest() {
     triage.value = null
   }
 
-  return { request, triage, load, list, ensureDraft, save, addPhoto, removePhoto, runTriage, submit, cancel, discard, reset }
+  return { request, triage, load, list, ensureDraft, save, addPhoto, removePhoto, addVoiceNote, removeVoiceNote, refreshVoiceNote, runTriage, submit, cancel, discard, reset }
 }

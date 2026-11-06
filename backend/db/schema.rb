@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_06_120000) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_07_090000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "citext"
   enable_extension "pg_catalog.plpgsql"
@@ -538,9 +538,16 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_06_120000) do
     t.text "transcript"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "transcript_status"
+    t.string "transcript_language", limit: 8
+    t.integer "duration_ms"
+    t.bigint "transcription_analysis_id"
     t.index ["public_id"], name: "index_request_attachments_on_public_id", unique: true
     t.index ["service_request_id"], name: "index_request_attachments_on_service_request_id"
+    t.index ["service_request_id"], name: "index_request_attachments_one_voice_note", unique: true, where: "((kind)::text = 'audio'::text)"
+    t.check_constraint "duration_ms IS NULL OR duration_ms >= 0 AND duration_ms <= 600000", name: "request_attachments_duration_check"
     t.check_constraint "kind::text = ANY (ARRAY['image'::character varying, 'audio'::character varying, 'video'::character varying]::text[])", name: "request_attachments_kind_check"
+    t.check_constraint "transcript_status IS NULL OR (transcript_status::text = ANY (ARRAY['pending'::character varying, 'succeeded'::character varying, 'failed'::character varying, 'skipped'::character varying]::text[]))", name: "request_attachments_transcript_status_check"
   end
 
   create_table "request_invitations", force: :cascade do |t|
@@ -850,6 +857,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_06_120000) do
   add_foreign_key "refresh_tokens", "user_sessions"
   add_foreign_key "refunds", "payments"
   add_foreign_key "refunds", "users", column: "initiated_by_id"
+  add_foreign_key "request_attachments", "ai_analyses", column: "transcription_analysis_id"
   add_foreign_key "request_attachments", "service_requests"
   add_foreign_key "request_invitations", "service_requests"
   add_foreign_key "request_invitations", "worker_profiles"

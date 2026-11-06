@@ -294,6 +294,11 @@ const fmt = (iso: string) => new Intl.DateTimeFormat(locale.value, { weekday: 's
               {{ job.description }}
             </dd>
           </div>
+          <div v-if="job.voice_note">
+            <dd>
+              <SharedVoiceNoteView :note="job.voice_note" />
+            </dd>
+          </div>
           <div v-if="job.photos.length">
             <dd class="grid grid-cols-3 gap-2">
               <a
