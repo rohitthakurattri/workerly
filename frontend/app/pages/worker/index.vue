@@ -172,6 +172,7 @@ onBeforeUnmount(() => stopLive())
         >{{ t('earnings.nav') }} →</NuxtLink>
       </div>
       <WorkerJobAlerts />
+      <SharedInstallCard :reason="t('pwa.workerReason')" />
     </template>
 
     <UiCard v-else>

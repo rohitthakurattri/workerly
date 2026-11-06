@@ -14,7 +14,7 @@ module Workerly
                       :vapid_public_key, :vapid_private_key, :vapid_subject,
                       :inspection_fee_adjusted, :booking_contact_hours, :review_window_days, :dispute_window_days,
                       :payment_adapter, :razorpay_key_id, :razorpay_key_secret, :razorpay_webhook_secret,
-                      :invoice_prefix, keyword_init: true)
+                      :invoice_prefix, :deploy_env, keyword_init: true)
 
   def self.config
     @config ||= Config.new(
@@ -55,7 +55,10 @@ module Workerly
       razorpay_key_id: ENV["RAZORPAY_KEY_ID"].presence,
       razorpay_key_secret: secret("RAZORPAY_KEY_SECRET"),
       razorpay_webhook_secret: secret("RAZORPAY_WEBHOOK_SECRET"),
-      invoice_prefix: ENV.fetch("INVOICE_PREFIX", "WK")
+      invoice_prefix: ENV.fetch("INVOICE_PREFIX", "WK"),
+      # Which deployment this is: development, test, staging or production. Staging runs with
+      # RAILS_ENV=production but may use the fake SMS and payment adapters (see below).
+      deploy_env: ENV.fetch("DEPLOY_ENV", Rails.env.to_s)
     ).freeze
   end
 end
@@ -65,3 +68,17 @@ Rails.application.config.active_record.encryption.tap do |enc|
   enc.deterministic_key = Workerly.secret("AR_ENCRYPTION_DETERMINISTIC_KEY")
   enc.key_derivation_salt = Workerly.secret("AR_ENCRYPTION_KEY_DERIVATION_SALT")
 end
+
+# A real deployment must not run on stand-ins: fake payments would let orders sit unpaid forever
+# and fake SMS would drop every login code. Staging may opt in (DEPLOY_ENV=staging).
+module Workerly
+  def self.check_deployment!(config = self.config, production: Rails.env.production?)
+    return if !production || config.deploy_env == "staging"
+
+    fakes = { "SMS_ADAPTER" => config.sms_adapter, "PAYMENT_ADAPTER" => config.payment_adapter }.select { |_, v| v == "fake" }
+    raise "Refusing to boot production with fake adapters: #{fakes.keys.join(', ')} (set real ones, or DEPLOY_ENV=staging)" if fakes.any?
+    raise "PAYMENT_ADAPTER=razorpay needs RAZORPAY_KEY_ID" if config.payment_adapter == "razorpay" && config.razorpay_key_id.blank?
+  end
+end
+
+Rails.application.config.after_initialize { Workerly.check_deployment! }

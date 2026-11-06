@@ -8,7 +8,12 @@ module Adapters
 
       def deliver(to:, body:)
         self.class.deliveries << Delivery.new(to:, body:)
-        return true if Rails.env.production?
+        # Staging only (production refuses to boot with this adapter): testers read their code
+        # from the log, as there is no real SMS yet (D6).
+        if Rails.env.production?
+          Rails.logger.warn("[FakeSms] staging code to=#{to} body=#{body.lines.first.strip}") if Workerly.config.deploy_env == "staging"
+          return true
+        end
 
         Rails.logger.info("[FakeSms] to=#{to} body=#{body.lines.first.strip}")
         # Local inbox for manual testing and the Playwright smoke test (tail -f log/fake_sms.log).

@@ -46,6 +46,7 @@ async function showPast() {
           {{ t('customer.newRequest') }}
         </UiButton>
       </section>
+      <SharedInstallCard :reason="t('pwa.customerReason')" />
 
       <UiSkeleton
         v-if="loading"

@@ -1,4 +1,5 @@
 import { ref } from 'vue'
+import { serviceWorkerUrl } from '~/utils/pwa'
 
 export type PushState = 'unsupported' | 'unavailable' | 'denied' | 'off' | 'on'
 
@@ -36,7 +37,7 @@ export function usePush() {
     const config = (await api<{ data: { enabled: boolean, public_key: string | null } }>('/devices/push_config')).data
     if (!config.enabled || !config.public_key) return (state.value = 'unavailable')
     if ((await Notification.requestPermission()) !== 'granted') return (state.value = 'denied')
-    await navigator.serviceWorker.register(`/push-sw.js?app=${app}`, { scope: '/' })
+    await navigator.serviceWorker.register(serviceWorkerUrl(app, import.meta.dev), { scope: '/' })
     const reg = await navigator.serviceWorker.ready
     const sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: keyBytes(config.public_key) })
     await api('/devices', { method: 'POST', body: sub.toJSON() })

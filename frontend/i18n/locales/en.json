@@ -937,5 +937,13 @@
     "confusion": "AI said {suggested}, customer chose {chosen}",
     "versions": "Prompt and model versions",
     "evalHint": "Before changing the model or prompt, run bin/rails \"ai:eval[triage]\" against the labelled set."
+  },
+  "pwa": {
+    "title": "Install the app",
+    "install": "Install",
+    "later": "Not now",
+    "iosSteps": "Tap Share, then “Add to Home Screen”.",
+    "workerReason": "Get new job alerts like a normal app, even on iPhone, and open Workerly Pro from your home screen.",
+    "customerReason": "Open Workerly from your home screen and get updates on your quotes and bookings."
   }
 }

@@ -18,10 +18,16 @@ export default defineNuxtConfig({
       meta: [
         { name: 'viewport', content: 'width=device-width, initial-scale=1, viewport-fit=cover' },
         { name: 'theme-color', content: t.themeColor },
+        { name: 'apple-mobile-web-app-capable', content: 'yes' },
+        { name: 'apple-mobile-web-app-title', content: t.shortName },
         // Admin must never be indexed.
         ...(target === 'admin' ? [{ name: 'robots', content: 'noindex, nofollow' }] : []),
       ],
-      link: [{ rel: 'icon', href: `/icons/${target}/favicon.svg`, type: 'image/svg+xml' }],
+      link: [
+        { rel: 'icon', href: `/icons/${target}/favicon.svg`, type: 'image/svg+xml' },
+        { rel: 'manifest', href: '/manifest.webmanifest' },
+        { rel: 'apple-touch-icon', href: `/icons/${target}/apple-touch-icon.png` },
+      ],
     },
   },
   css: ['~/assets/css/main.css'],
@@ -37,6 +43,8 @@ export default defineNuxtConfig({
       },
       // OpenStreetMap's own tiles are fine for development only (usage policy); production
       // sets a tile provider via NUXT_PUBLIC_MAP_TILE_URL / NUXT_PUBLIC_MAP_ATTRIBUTION.
+      // Origins that signed file URLs point at (S3 bucket / CDN), comma-separated, for the CSP.
+      assetOrigins: '', // NUXT_PUBLIC_ASSET_ORIGINS
       mapTileUrl: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
       mapAttribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
     },

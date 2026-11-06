@@ -1,0 +1,12 @@
+.git
+.env*
+!.env.example
+log/*
+tmp/*
+storage/*
+coverage
+spec
+vendor/bundle
+.bundle
+node_modules
+swagger

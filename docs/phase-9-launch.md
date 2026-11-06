@@ -1,0 +1,51 @@
+# Phase 9 — Launch readiness (handover)
+
+**Exit gate (local):** every app installs as a PWA and degrades to an offline page; every HTML page carries a strict nonce CSP with no violations; production images build and run locally; production refuses fake SMS/payments.
+**Status (2026-11-07):** met locally. **Cloud deployment not done** (Terraform drafted, not validated or applied, by request).
+- Vitest `security-headers.spec.ts`: per-app CSP (Razorpay and microphone only in the customer app, admin without map tiles), nonce injection, HSTS only over https, OSM tile detection, service worker URL, iPhone detection.
+- RSpec `spec/config/deployment_spec.rb`: boot guard and API headers.
+- Production build checked in Chromium:
+  - CSP and nonces present, no CSP violations;
+  - service worker registers;
+  - offline navigation shows the offline page;
+  - manifest served;
+  - OSM tile warning logged.
+- Docker: the `workerly-web` image builds. **Not yet verified at commit time:** the `workerly-api` image build (it was still running) and a full run of `docker compose --profile app`.
+- RSpec: 523 examples. Vitest: 87. RuboCop, ESLint and typecheck (all 3 apps) are clean. Playwright was not re-run in this phase.
+
+Rules and choices: `docs/adr/0011-pwa-security-headers-deployment.md`.
+
+## 1. What was built
+- **PWA:** per-app manifest route and icons (192, 512, maskable, Apple touch), service worker with offline page and push, registration plugin, install card (customer and worker home).
+- **Security:** nonce CSP and headers for all three apps; locked-down API headers; `APP_HOSTS`; production boot guard; staging OTP logging.
+- **Packaging:** `backend/Dockerfile`, `frontend/Dockerfile`, `.dockerignore`s, the `app` profile in `docker-compose.yml` with `backend/.env.app-local`.
+- **Draft cloud:** `infra/terraform/` (see ADR 0011), with `environments/*.tfvars` and backend configs. Not run.
+
+## 2. Settings
+| Variable | Where | Purpose |
+| --- | --- | --- |
+| `DEPLOY_ENV` | API | `staging` allows fake SMS/payments in production mode |
+| `APP_HOSTS` | API | allowed Host headers in production |
+| `FORCE_SSL`, `LOCAL_DISK_STORAGE` | API | local production-like stack only |
+| `NUXT_PUBLIC_ASSET_ORIGINS` | apps | file bucket / CDN origins for the CSP |
+| `NUXT_PUBLIC_MAP_TILE_URL` | apps | commercial tile provider before launch |
+
+## 3. Commands
+```bash
+docker compose --profile app up --build     # production images on :3100-3103
+docker compose logs -f api jobs | grep FakeSms   # login codes in that stack
+cd frontend && npm run build:customer && node .output/customer/server/index.mjs   # one app, production build
+```
+
+## 4. Manual verification
+1. `docker compose --profile app up --build`, open http://localhost:3101, log in (code from the logs).
+2. DevTools → Application: manifest with icons, service worker `sw.js?app=customer` active. Network → Offline, reload: the offline page.
+3. Response headers of the page: CSP with a nonce; no CSP errors in the console while you post a job with a photo and a voice note.
+4. On an Android phone (same network, or the dev servers): "Install the app" card → installs with the right icon and colour.
+5. Start the API with `RAILS_ENV=production SMS_ADAPTER=fake` (no `DEPLOY_ENV`): it refuses to boot and says why.
+
+## 5. Not done in Phase 9
+- **Any cloud deployment:** Terraform review/validate/apply, DNS, certificates, CI deploy workflow. Waiting for the go-ahead.
+- **Real SMS adapter (D6):** without it production can't boot (by design).
+- **Tile provider choice** and its key.
+- Offline viewing of already-loaded data (deliberately not cached: personal data on shared phones).

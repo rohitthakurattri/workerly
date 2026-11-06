@@ -7,7 +7,7 @@ Home-services marketplace for Mohali and Chandigarh: customers post a problem, v
 | `backend/` | Rails 8.1 API (modular monolith), PostgreSQL + PostGIS, Sidekiq |
 | `frontend/` | Nuxt 4 codebase built three times: customer, worker (Pro) and admin apps |
 | `docs/` | Architecture decisions (`adr/`) and per-phase handover notes |
-| `infra/` | Terraform (Phase 9) |
+| `infra/` | Terraform for AWS (draft, not applied yet) |
 
 ## Run it locally
 
@@ -35,6 +35,15 @@ Create a staff user (prints a TOTP QR URI for an authenticator app):
 
 ```bash
 cd backend && bin/rails "admin:grant[9876543210,admin]"
+```
+
+## Production-like stack (local)
+
+The real Docker images, production builds, on plain http:
+
+```bash
+docker compose --profile app up --build   # API :3100, customer :3101, worker :3102, admin :3103
+docker compose logs -f api jobs | grep FakeSms   # login codes (staging mode, fake SMS)
 ```
 
 ## Tests
